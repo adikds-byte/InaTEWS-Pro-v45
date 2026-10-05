@@ -10,7 +10,7 @@
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@500;600;700;800;900&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
     
     <!-- FontAwesome 6.5.1 -->
@@ -18,6 +18,9 @@
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+    <!-- Three.js r128 for 3D Realistic Earth Globe & Orbit -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <style>
         :root {
@@ -87,8 +90,16 @@
         .flip-container.flipped #frontMapHolder { pointer-events: none !important; visibility: hidden !important; }
         .flip-container.flipped #backWeatherHolder { pointer-events: auto !important; visibility: visible !important; z-index: 50 !important; }
 
-        
-        /* PROFESSIONAL V4 ANIMATIONS */
+        @keyframes earthGlowPulse {
+            0%, 100% {
+                box-shadow: 0 0 35px rgba(6, 182, 212, 0.35), inset 0 0 25px rgba(6, 182, 212, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 70px rgba(16, 185, 129, 0.45), inset 0 0 35px rgba(16, 185, 129, 0.25);
+            }
+        }
+        .earth-glow-box { animation: earthGlowPulse 4s ease-in-out infinite; }
+
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
         .shimmer-text { background: linear-gradient(90deg, #06b6d4 0%, #ffffff 50%, #06b6d4 100%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 3s linear infinite; }
         
@@ -98,19 +109,6 @@
         @keyframes neonPulse { 0%, 100% { box-shadow: 0 0 10px rgba(6,182,212,0.5), 0 0 20px rgba(6,182,212,0.3); } 50% { box-shadow: 0 0 20px rgba(6,182,212,0.8), 0 0 40px rgba(6,182,212,0.5); } }
         .neon-pulse { animation: neonPulse 2s ease-in-out infinite; }
         
-        @keyframes slideInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .slide-in-up { animation: slideInUp 0.5s ease-out forwards; }
-        
-        @keyframes dataFlow { 0% { stroke-dashoffset: 100; } 100% { stroke-dashoffset: 0; } }
-        .data-flow-line { stroke-dasharray: 10; animation: dataFlow 2s linear infinite; }
-        
-        @keyframes radarSweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .radar-sweep { animation: radarSweep 4s linear infinite; transform-origin: center; }
-        
-        @keyframes typewriter { from { width: 0; } to { width: 100%; } }
-        .typewriter { overflow: hidden; white-space: nowrap; animation: typewriter 2s steps(40) forwards; }
-        
-        /* PROGRAMMER AVATAR ANIMATION */
         .programmer-avatar { position: relative; display: flex; align-items: center; justify-content: center; }
         .programmer-avatar::before { content: ''; position: absolute; inset: -4px; border-radius: 14px; background: conic-gradient(from 0deg, #ec4899, #8b5cf6, #06b6d4, #10b981, #ec4899); animation: rotate 3s linear infinite; z-index: 0; opacity: 0.6; }
         .programmer-avatar > * { position: relative; z-index: 1; }
@@ -118,31 +116,12 @@
         
         @keyframes codeType { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         .code-blink { animation: codeType 1.2s infinite; }
-        
-        /* IMPROVED CHAT BUBBLE */
-        .chat-bubble-pro { border-radius: 16px 16px 4px 16px; padding: 14px 16px; transition: all 0.3s ease; }
-        .chat-bubble-pro:hover { transform: scale(1.01); }
-        
-        /* DASHBOARD CARD GLOW */
-        @keyframes cardGlow { 0%, 100% { box-shadow: 0 0 8px rgba(6,182,212,0.2); } 50% { box-shadow: 0 0 16px rgba(6,182,212,0.4); } }
-        .card-glow-anim { animation: cardGlow 3s ease-in-out infinite; }
-        
-        /* SEISMIC WAVE VISUALIZATION */
-        @keyframes seismicWave { 0% { transform: scaleY(0.3); opacity: 0.5; } 50% { transform: scaleY(1.2); opacity: 1; } 100% { transform: scaleY(0.3); opacity: 0.5; } }
-        .seismic-bar { animation: seismicWave 1.5s ease-in-out infinite; }
-        
-        /* DATA TABLE STYLING */
-        .data-table-pro th { background: linear-gradient(180deg, rgba(6,182,212,0.15), rgba(6,182,212,0.05)); padding: 8px 10px; font-size: 13px; }
-        .data-table-pro td { padding: 7px 10px; font-size: 13px; border-bottom: 1px solid rgba(6,182,212,0.1); }
-        .data-table-pro tr:hover { background: rgba(6,182,212,0.05); }
 
-        /* Leaflet & Custom Popups */
         .leaflet-container { background: #020617 !important; font-family: 'JetBrains Mono', monospace; }
         .leaflet-popup-content-wrapper { background: rgba(15, 23, 42, 0.96) !important; color: #fff !important; border: 1.5px solid #06b6d4 !important; border-radius: 10px !important; backdrop-filter: blur(10px) !important; box-shadow: 0 15px 35px rgba(0,0,0,0.85) !important; padding: 0 !important; }
         .leaflet-popup-tip { background: #06b6d4 !important; }
         .leaflet-popup-content { margin: 0 !important; line-height: inherit !important; }
 
-        /* Alert Animations */
         @keyframes alertAwas { 0%, 100% { background-color: #7f1d1d; box-shadow: 0 0 15px #ef4444; border-color: #ef4444; } 50% { background-color: #dc2626; box-shadow: 0 0 35px #f87171; border-color: #f87171; } }
         @keyframes alertSiaga { 0%, 100% { background-color: #7c2d12; box-shadow: 0 0 15px #f97316; border-color: #f97316; } 50% { background-color: #ea580c; box-shadow: 0 0 35px #fb923c; border-color: #fb923c; } }
         @keyframes alertWaspada { 0%, 100% { background-color: #713f12; box-shadow: 0 0 15px #eab308; border-color: #eab308; } 50% { background-color: #ca8a04; box-shadow: 0 0 35px #fef08a; border-color: #fef08a; } }
@@ -162,180 +141,21 @@
             100% { stroke-opacity: 0.9; stroke-width: 3; }
         }
         .tsunami-isochrone-ring { animation: tsunamiWaveIsochrone 2.5s ease-in-out infinite; }
-
-        /* Screensaver & Cosmic Grid */
         .sc-matrix-grid { background-image: linear-gradient(rgba(6, 182, 212, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(6, 182, 212, 0.08) 1px, transparent 1px); background-size: 40px 40px; }
 
-        /* ATOM MOLECULAR ORBIT ANIMATION (LOADING SCREEN) */
-        .atom-container {
-            position: relative;
-            width: 140px;
-            height: 140px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            perspective: 800px;
-        }
-        .atom-nucleus {
-            width: 36px;
-            height: 36px;
-            background: radial-gradient(circle, #ffffff 0%, #00f0ff 40%, #0284c7 80%, #0f172a 100%);
-            border-radius: 50%;
-            box-shadow: 0 0 25px #00f0ff, 0 0 60px rgba(6, 182, 212, 0.75);
-            position: relative;
-            z-index: 10;
-            animation: nucleusPulse 2s infinite ease-in-out;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        @keyframes nucleusPulse {
-            0%, 100% { transform: scale(0.92); box-shadow: 0 0 20px #00f0ff; }
-            50% { transform: scale(1.12); box-shadow: 0 0 40px #00f0ff, 0 0 70px rgba(6, 182, 212, 0.9); }
-        }
-        .atom-ring {
-            position: absolute;
-            width: 130px;
-            height: 130px;
-            border-radius: 50%;
-            border: 2px solid rgba(6, 182, 212, 0.4);
-            border-top: 2.5px solid #00f0ff;
-            border-right: 2px solid #38bdf8;
-            box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
-        }
-        .atom-ring-1 {
-            transform: rotateX(65deg) rotateY(0deg);
-            animation: atomSpin1 2.2s linear infinite;
-        }
-        .atom-ring-2 {
-            transform: rotateX(65deg) rotateY(60deg);
-            animation: atomSpin2 2.8s linear infinite;
-        }
-        .atom-ring-3 {
-            transform: rotateX(65deg) rotateY(120deg);
-            animation: atomSpin3 3.4s linear infinite;
-        }
-        @keyframes atomSpin1 { 0% { transform: rotateX(65deg) rotateY(0deg) rotateZ(0deg); } 100% { transform: rotateX(65deg) rotateY(0deg) rotateZ(360deg); } }
-        @keyframes atomSpin2 { 0% { transform: rotateX(65deg) rotateY(60deg) rotateZ(0deg); } 100% { transform: rotateX(65deg) rotateY(60deg) rotateZ(360deg); } }
-        @keyframes atomSpin3 { 0% { transform: rotateX(65deg) rotateY(120deg) rotateZ(0deg); } 100% { transform: rotateX(65deg) rotateY(120deg) rotateZ(360deg); } }
-
-        .electron-dot {
-            position: absolute;
-            top: -4px;
-            left: 50%;
-            width: 9px;
-            height: 9px;
-            background: #ffffff;
-            border-radius: 50%;
-            box-shadow: 0 0 10px #00f0ff, 0 0 25px #00f0ff;
-        }
-
-        /* 3D REALISTIC EARTH GLOBE (SCREENSAVER) */
-        .earth-globe-wrapper {
-            position: relative;
-            width: 220px;
-            height: 220px;
-            perspective: 1000px;
-            margin: 0 auto 1.25rem auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .earth-sphere {
-            width: 170px;
-            height: 170px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #38bdf8 0%, #0284c7 20%, #0369a1 40%, #0f172a 80%, #020617 100%);
-            box-shadow: inset -25px -25px 45px rgba(0, 0, 0, 0.95), 
-                        inset 12px 12px 30px rgba(56, 189, 248, 0.45), 
-                        0 0 40px rgba(6, 182, 212, 0.6), 
-                        0 0 90px rgba(14, 165, 233, 0.3);
-            position: relative;
-            overflow: hidden;
-            border: 1.5px solid rgba(56, 189, 248, 0.35);
-        }
-        .earth-texture-continents {
-            position: absolute;
-            inset: 0;
-            width: 200%;
-            height: 100%;
-            background-image: 
-                radial-gradient(#10b981 16%, transparent 17%), 
-                radial-gradient(#059669 22%, transparent 24%),
-                radial-gradient(#047857 28%, transparent 30%),
-                radial-gradient(#065f46 35%, transparent 37%);
-            background-size: 55px 55px, 85px 85px, 110px 110px, 140px 140px;
-            background-position: 0 0, 40px 25px, 70px 50px, 100px 75px;
-            opacity: 0.75;
-            animation: earthRotate 20s linear infinite;
-            mix-blend-mode: screen;
-        }
-        @keyframes earthRotate {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-        .earth-clouds {
-            position: absolute;
-            inset: 0;
-            width: 200%;
-            height: 100%;
-            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.45) 0%, transparent 60%);
-            background-size: 70px 35px;
-            opacity: 0.6;
-            animation: cloudsRotate 13s linear infinite;
-            mix-blend-mode: overlay;
-        }
-        @keyframes cloudsRotate {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-        .earth-orbit-ring {
-            position: absolute;
-            width: 230px;
-            height: 230px;
-            border-radius: 50%;
-            border: 1.5px dashed rgba(6, 182, 212, 0.5);
-            transform: rotateX(72deg) rotateY(-18deg);
-            animation: orbitRingSpin 7s linear infinite;
-        }
-        @keyframes orbitRingSpin {
-            0% { transform: rotateX(72deg) rotateY(-18deg) rotateZ(0deg); }
-            100% { transform: rotateX(72deg) rotateY(-18deg) rotateZ(360deg); }
-        }
-        .satellite-node {
-            position: absolute;
-            top: -5px;
-            left: 50%;
-            width: 10px;
-            height: 10px;
-            background: #f59e0b;
-            border-radius: 50%;
-            box-shadow: 0 0 15px #f59e0b, 0 0 30px #f59e0b;
-            animation: beaconBlink 1s infinite alternate;
-        }
-        @keyframes beaconBlink {
-            0% { transform: scale(0.8); opacity: 0.7; }
-            100% { transform: scale(1.25); opacity: 1; }
-        }
-
-        /* Quotes Animation */
         @keyframes quoteFade {
             0% { opacity: 0; transform: translateY(6px); }
             15% { opacity: 1; transform: translateY(0); }
             85% { opacity: 1; transform: translateY(0); }
             100% { opacity: 0; transform: translateY(-6px); }
         }
-        .quote-animated {
-            animation: quoteFade 6s ease-in-out infinite;
-        }
+        .quote-animated { animation: quoteFade 6s ease-in-out infinite; }
 
-        /* Loading Progress */
         @keyframes loading-progress { 0% { width: 0%; } 40% { width: 65%; } 100% { width: 100%; } }
-        .animate-loading-progress { animation: loading-progress 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        .animate-loading-progress { animation: loading-progress 2s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
         .loading-dots::after { content: '.'; animation: dots 1.5s steps(5, end) infinite; }
         @keyframes dots { 0%, 20% { content: '.'; } 40% { content: '..'; } 60%, 100% { content: '...'; } }
 
-        /* Chat rich cards */
         @keyframes chatEntrance { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .chat-card-animated { animation: chatEntrance 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .chat-glow-creator { border: 1.5px solid #ec4899 !important; box-shadow: 0 0 25px rgba(236, 72, 153, 0.35), inset 0 0 15px rgba(236, 72, 153, 0.15); }
@@ -343,7 +163,6 @@
         .chat-glow-tsunami { border: 1.5px solid #ef4444 !important; box-shadow: 0 0 25px rgba(239, 68, 68, 0.35), inset 0 0 15px rgba(239, 68, 68, 0.15); }
         .chat-glow-monsoon { border: 1.5px solid #f59e0b !important; box-shadow: 0 0 25px rgba(245, 158, 11, 0.35), inset 0 0 15px rgba(245, 158, 11, 0.15); }
 
-        /* Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); border-radius: 8px; }
         ::-webkit-scrollbar-thumb { background: #06b6d4; border-radius: 8px; }
@@ -359,7 +178,6 @@
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(6, 182, 212, 0); }
         }
 
-        /* MODE MAP FULLSCREEN SPECIALIZED VIEW */
         body.mode-map-fullscreen {
             overflow: hidden !important;
             padding: 0 !important;
@@ -419,7 +237,6 @@
             backdrop-filter: blur(16px) !important;
             box-shadow: 0 10px 35px rgba(0,0,0,0.85), 0 0 20px rgba(6,182,212,0.3) !important;
         }
-        /* Penyesuaian posisi kontrol & bar lapisan saat mode fullscreen agar tidak tertutup toolbar */
         body.mode-map-fullscreen #frontMapHolder .absolute.top-3.left-3 {
             top: 75px !important;
             z-index: 650 !important;
@@ -432,97 +249,126 @@
 </head>
 <body id="appBody" class="theme-dark bg-[var(--bg-main)] text-[var(--text-main)] p-2 md:p-3.5 min-h-screen flex flex-col justify-between overflow-x-hidden relative pb-10">
 
-    <!-- BOOT / LOADING SCREEN -->
-    <div id="systemLoadingScreen" class="fixed inset-0 z-[10000] bg-[#020617] flex flex-col items-center justify-center transition-opacity duration-700 select-none cursor-pointer" onclick="dismissLoadingScreen()" title="Klik untuk langsung masuk ke dasbor">
-        <div class="relative flex flex-col items-center px-4 max-w-lg w-full text-center">
-            
-            <!-- ATOM MOLECULAR ORBIT ANIMATION -->
-            <div class="atom-container mb-6">
-                <div class="atom-ring atom-ring-1"><div class="electron-dot"></div></div>
-                <div class="atom-ring atom-ring-2"><div class="electron-dot"></div></div>
-                <div class="atom-ring atom-ring-3"><div class="electron-dot"></div></div>
-                <div class="atom-nucleus">
-                    <i class="fa-solid fa-atom text-white text-base animate-spin" style="animation-duration: 6s;"></i>
+    <!-- 0. BACKGROUND REALISTIS 3D ORBIT BUMI (THREE.JS) -->
+    <div id="bgEarthContainer" class="fixed inset-0 z-0 pointer-events-none opacity-20 overflow-hidden no-print">
+        <div id="bgEarthCanvas" class="w-full h-full"></div>
+    </div>
+
+    <!-- BOOT / LOADING SCREEN DENGAN BUMI NYATA & AWAN 3D (THREE.JS) -->
+    <div id="systemLoadingScreen" class="fixed inset-0 z-[10000] bg-[#020617]/95 text-white flex flex-col items-center justify-between p-4 sm:p-6 overflow-y-auto select-none cursor-pointer transition-opacity duration-700" onclick="dismissLoadingScreen()" title="Klik untuk langsung masuk ke dasbor">
+        
+        <!-- Header Info Loading -->
+        <div class="w-full max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-400 flex items-center justify-center text-slate-950 font-black text-lg shadow-lg shadow-cyan-500/30">
+                    <i class="fa-solid fa-tower-broadcast text-white"></i>
+                </div>
+                <div>
+                    <h2 class="font-tech text-sm sm:text-base font-black tracking-wider text-cyan-400 flex items-center gap-1.5">
+                        InaTEWS PRO <span class="text-white">v4.5</span>
+                        <span class="text-[9px] text-cyan-300 font-mono px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/40">BMKG REPO</span>
+                    </h2>
+                    <p class="text-[10px] text-slate-400 font-mono">Sistem Peringatan Dini Gempa Bumi, Tsunami &amp; Geoteknik Seismik Nasional</p>
                 </div>
             </div>
+
+            <!-- LIVE DATE & TIME IN LOADING SCREEN -->
+            <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-cyan-500/40 text-xs font-mono text-cyan-300 shadow-inner">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                <span id="load-date-display" class="text-slate-300">-</span>
+                <span class="text-amber-400">|</span>
+                <span id="load-time-display" class="text-amber-400 font-black">00:00:00 WIB</span>
+            </div>
+        </div>
+
+        <!-- Center 3D Interactive Earth Sphere (Three.js) -->
+        <div class="w-full max-w-xl mx-auto my-auto py-4 flex flex-col items-center justify-center space-y-4">
             
-            <div>
-                <h1 class="font-tech text-2xl md:text-3xl font-black text-cyan-400 tracking-[0.25em] uppercase glow-text">InaTEWS PRO v3.0</h1>
-                <p class="font-mono text-xs text-slate-400 tracking-widest mt-1 uppercase flex items-center justify-center gap-2 font-bold">
+            <div class="relative w-64 h-64 sm:w-80 sm:h-80 md:w-88 md:h-88 flex items-center justify-center rounded-full earth-glow-box bg-slate-900/40 border border-cyan-500/40 backdrop-blur-sm cursor-grab active:cursor-grabbing" title="Geser/Putar Bumi 3D dengan mouse atau sentuhan jari">
+                <div id="loadingEarthCanvas" class="w-full h-full rounded-full overflow-hidden"></div>
+                <div class="absolute inset-0 rounded-full bg-radial from-transparent via-transparent to-slate-950/50 pointer-events-none"></div>
+                <div class="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-slate-950/85 border border-cyan-500/40 text-[10px] font-mono text-cyan-300 flex items-center gap-1.5 shadow pointer-events-none whitespace-nowrap">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>Bumi Nyata &amp; Awan 3D (Sentuh/Geser untuk Memutar)</span>
+                </div>
+            </div>
+
+            <div class="text-center space-y-1">
+                <h1 class="font-tech text-xl sm:text-2xl font-black text-cyan-400 tracking-[0.2em] uppercase glow-text">InaTEWS PRO v4.5</h1>
+                <p class="font-mono text-xs text-slate-400 tracking-widest uppercase flex items-center justify-center gap-2 font-bold">
                     <i class="fa-solid fa-satellite-dish animate-pulse text-amber-500"></i> QUANTUM SEISMIC &amp; TSUNAMI TELEMETRY<span class="loading-dots text-cyan-500"></span>
                 </p>
             </div>
 
-            <!-- LIVE DATE & TIME IN LOADING SCREEN -->
-            <div class="mt-4 px-6 py-2 bg-slate-900/90 border border-cyan-500/40 rounded-xl font-mono text-xs font-bold text-slate-200 shadow-[0_0_20px_rgba(6,182,212,0.25)] flex items-center gap-3">
-                <span id="load-date-display" class="text-cyan-300">-</span>
-                <span class="text-amber-400">|</span>
-                <span id="load-time-display" class="text-amber-400 font-black">00:00:00 WIB</span>
-            </div>
-
             <!-- PROGRESS BAR -->
-            <div class="w-72 max-w-full h-2 bg-slate-900 rounded-full mt-5 overflow-hidden border border-slate-800">
+            <div class="w-80 max-w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
                 <div class="h-full bg-gradient-to-r from-cyan-500 via-emerald-400 to-rose-500 rounded-full animate-loading-progress shadow-[0_0_15px_rgba(6,182,212,0.9)]"></div>
             </div>
             
-            <div class="mt-3 text-[10px] font-mono text-slate-500 tracking-widest uppercase">
-                CALIBRATING 180 SEISMIC STATIONS • BMKG FEED READY
+            <div class="text-[10px] font-mono text-slate-400 tracking-widest uppercase flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-cyan-400"></span> CALIBRATING 180 SEISMIC STATIONS • 12 INABUOY • BMKG FEED READY
             </div>
-            <div class="mt-2 text-[9px] font-mono text-slate-600 tracking-wider">
-                (Klik layar ini untuk langsung masuk ke dasbor)
+        </div>
+
+        <div class="w-full max-w-4xl mx-auto text-center pb-2 space-y-1">
+            <div class="text-[10px] font-mono text-cyan-400/90 tracking-wider">
+                &ldquo;Kesiapsiagaan hari ini adalah penyelamat kehidupan esok hari. Bersahabat dengan alam, tanggap terhadap bencana.&rdquo;
+            </div>
+            <div class="text-[9px] font-mono text-slate-500 tracking-wider">
+                (Klik layar ini atau sentuh untuk langsung masuk ke dasbor)
             </div>
         </div>
     </div>
 
-    <!-- SCREENSAVER 3D REALISTIC EARTH GLOBE + QUOTES -->
-    <div id="monsoonTechScreensaver" class="hidden fixed inset-0 z-[100000] bg-[#010409] flex flex-col items-center justify-center overflow-hidden font-tech transition-all duration-700 opacity-0 select-none cursor-pointer" onclick="resetIdle()" title="Sentuh layar atau gerakkan kursor untuk kembali ke dasbor">
+    <!-- SCREENSAVER REALISTIS 3D ORBIT BUMI + DIGITAL CLOCK (THREE.JS) -->
+    <div id="monsoonTechScreensaver" class="hidden fixed inset-0 z-[100000] bg-slate-950/95 backdrop-blur-md text-white flex flex-col justify-between p-4 sm:p-8 select-none transition-all duration-700 opacity-0 cursor-pointer overflow-hidden font-tech" onclick="resetIdle()" title="Sentuh layar atau gerakkan kursor untuk kembali ke dasbor">
         
-        <!-- Cosmic Starfield Background -->
-        <div class="absolute inset-0 sc-matrix-grid opacity-30 pointer-events-none"></div>
-        <div class="absolute inset-0 pointer-events-none opacity-20">
-            <svg viewBox="0 0 1000 600" class="w-full h-full text-cyan-500 fill-current opacity-30">
-                <circle cx="200" cy="150" r="1.5" fill="#fff"/>
-                <circle cx="800" cy="220" r="1" fill="#fff"/>
-                <circle cx="450" cy="80" r="1.5" fill="#38bdf8"/>
-                <circle cx="650" cy="450" r="1" fill="#fff"/>
-                <circle cx="150" cy="480" r="2" fill="#00f0ff"/>
-                <circle cx="880" cy="120" r="1.5" fill="#fff"/>
-            </svg>
+        <!-- Header Screensaver -->
+        <div class="w-full flex items-center justify-between z-20 px-2 sm:px-6">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-cyan-600/30 border border-cyan-400/40 flex items-center justify-center text-cyan-300 text-lg shadow">
+                    <i class="fa-solid fa-earth-asia animate-pulse"></i>
+                </div>
+                <div>
+                    <div id="screensaver-top-title" class="text-sm font-bold text-white font-tech tracking-wide">Screensaver Orbit Bumi &amp; Pemantauan Seismik InaTEWS Pro v4.5</div>
+                    <div id="screensaver-top-sub" class="text-xs text-slate-300 font-mono">Tekan ESC atau klik layar untuk kembali ke dasbor</div>
+                </div>
+            </div>
+            <button type="button" onclick="event.stopPropagation(); turnOffScreensaverMode()" class="px-4 py-2 rounded-xl bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-500/50 text-xs font-bold text-cyan-300 transition flex items-center gap-1.5 shadow cursor-pointer font-mono">
+                <i class="fa-solid fa-xmark"></i> Tutup Screensaver
+            </button>
         </div>
 
-        <div class="z-10 text-center flex flex-col items-center px-6 max-w-2xl w-full">
+        <!-- Center 3D Realistic Earth Globe + Digital Clock -->
+        <div class="relative w-full h-[320px] sm:h-[420px] my-auto flex items-center justify-center pointer-events-none">
+            <div id="ssEarthCanvas" class="absolute inset-0 w-full h-full"></div>
             
-            <!-- 3D REALISTIC EARTH GLOBE ORBIT -->
-            <div class="earth-globe-wrapper">
-                <div class="earth-sphere">
-                    <div class="earth-texture-continents"></div>
-                    <div class="earth-clouds"></div>
+            <div class="z-20 flex flex-col items-center text-center max-w-4xl px-4 space-y-2 pointer-events-none">
+                <!-- LARGE DIGITAL CLOCK -->
+                <div id="scClockDisplay" class="text-6xl md:text-8xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 via-white to-amber-200 font-mono drop-shadow-2xl glow-text">
+                    00:00:00
                 </div>
-                <div class="earth-orbit-ring">
-                    <div class="satellite-node"></div>
+                
+                <!-- REALTIME DATE & TIMEZONE -->
+                <div class="flex flex-wrap items-center justify-center gap-3 text-slate-100 font-bold tracking-widest text-sm md:text-lg border-t border-b border-cyan-500/50 py-2 px-8 bg-slate-900/80 backdrop-blur-md rounded-xl">
+                    <span id="scDateDisplay" class="text-cyan-200">-</span>
+                    <span class="text-amber-400">|</span>
+                    <span id="scTzDisplay" class="text-amber-400 font-mono">WIB (UTC+7)</span>
+                </div>
+
+                <div id="screensaver-status-badge" class="text-xs text-emerald-300 font-mono tracking-widest uppercase font-bold bg-slate-950/85 px-4 py-1.5 rounded-full border border-emerald-500/40 shadow-lg">
+                    STATUS MONITORING SEISMIK &amp; TSUNAMI: NORMAL (HIJAU) &bull; 180 STASIUN AKTIF
                 </div>
             </div>
+        </div>
 
-            <div class="mb-3 flex items-center gap-2 border border-cyan-500/60 px-5 py-1.5 rounded-full bg-cyan-950/80 text-cyan-400 font-mono text-xs tracking-[0.25em] uppercase shadow-[0_0_25px_rgba(6,182,212,0.5)] backdrop-blur-md">
-                <i class="fa-solid fa-earth-asia text-emerald-400 animate-pulse"></i> <span>INDONESIA ORBITAL SPACE SURVEILLANCE</span>
-            </div>
-            
-            <!-- LARGE DIGITAL CLOCK -->
-            <div id="scClockDisplay" class="text-6xl md:text-8xl font-black text-white tracking-widest filter drop-shadow-[0_0_40px_rgba(6,182,212,0.9)] glow-text leading-tight font-tech">00:00:00</div>
-            
-            <!-- REALTIME DATE & TIMEZONE -->
-            <div class="mt-3 flex flex-wrap items-center justify-center gap-3 text-slate-100 font-bold tracking-widest text-sm md:text-lg border-t border-b border-cyan-500/50 py-2 px-8 bg-slate-900/70 backdrop-blur-md rounded-xl">
-                <span id="scDateDisplay" class="text-cyan-200">-</span>
-                <span class="text-amber-400">|</span>
-                <span id="scTzDisplay" class="text-amber-400 font-mono">WIB (UTC+7)</span>
-            </div>
-
-            <!-- KATA-KATA BIJAK & MOTIVASI CAROUSEL -->
-            <div class="mt-5 p-3.5 bg-slate-900/80 border border-indigo-500/50 rounded-2xl max-w-xl w-full shadow-[0_0_30px_rgba(99,102,241,0.35)] backdrop-blur-md">
-                <div class="flex items-center justify-center gap-1.5 text-indigo-400 text-xs font-bold mb-1.5 uppercase tracking-wider">
-                    <i class="fa-solid fa-quote-left text-sm"></i>
-                    <span>MUTIARA KEBIJAKSANAAN &amp; MOTIVASI</span>
-                    <i class="fa-solid fa-quote-right text-sm"></i>
+        <!-- KATA-KATA BIJAK & MOTIVASI CAROUSEL -->
+        <div class="z-20 w-full max-w-2xl mx-auto px-4 mb-2 pointer-events-auto">
+            <div class="bg-slate-900/90 border border-cyan-500/50 p-4 sm:p-5 rounded-2xl shadow-2xl backdrop-blur-md text-center">
+                <div class="flex items-center justify-center gap-1.5 text-cyan-400 text-xs font-bold mb-1.5 uppercase tracking-wider">
+                    <i class="fa-solid fa-quote-left text-sm text-cyan-300"></i>
+                    <span id="screensaver-quote-header">MUTIARA KEBIJAKSANAAN &amp; MOTIVASI MITIGASI</span>
+                    <i class="fa-solid fa-quote-right text-sm text-cyan-300"></i>
                 </div>
                 <p id="scWisdomQuoteText" class="text-slate-200 font-sans text-xs md:text-sm italic leading-relaxed quote-animated font-medium">
                     "Kesiapsiagaan hari ini adalah penyelamat kehidupan esok hari. Bersahabat dengan alam, tanggap terhadap bencana."
@@ -531,17 +377,17 @@
                     — Prinsip Mitigasi &amp; Ketangguhan Hidup
                 </span>
             </div>
+        </div>
 
-            <div class="mt-8 text-slate-500 font-mono text-[11px] tracking-[0.25em] uppercase animate-pulse flex items-center gap-2">
-                <i class="fa-solid fa-hand-pointer text-cyan-400"></i> SENTUH LAYAR ATAU TEKAN KEYBOARD UNTUK KEMBALI
-            </div>
+        <div class="w-full text-center text-[10px] text-slate-400 font-mono z-20">
+            InaTEWS Pro v4.5 &bull; BMKG Realtime Telemetry &bull; Mohamad Hartadi &bull; Sentuh Layar atau Tekan Keyboard untuk Kembali
         </div>
     </div>
 
     <!-- MAIN DASHBOARD -->
     <div id="mainDashboardInterface" class="w-full flex flex-col flex-1 gap-3 relative z-10">
         
-        <!-- HEADER HUD -->
+        <!-- HEADER HUD DENGAN TOMBOL SEISMIC SITE REPORT PRO -->
         <header class="w-full bg-[var(--bg-header)] p-3 md:p-3.5 rounded-xl border-2 border-[var(--border-color)] shadow-xl flex flex-col lg:flex-row justify-between items-center gap-3 glass-panel" title="Panel Utama Sistem Monitoring Seismik & Tsunami InaTEWS Pro">
             
             <div class="flex items-center gap-3 w-full lg:w-auto" title="Status InaTEWS Pro v4.5">
@@ -551,9 +397,9 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <h1 class="font-tech text-lg md:text-xl font-black tracking-widest color-main uppercase glow-text">InaTEWS PRO</h1>
-                        <span class="text-[9px] font-mono px-2 py-0.5 bg-cyan-950 text-cyan-400 border border-cyan-500/50 rounded font-bold" title="Versi Rilis Aplikasi v4.5 Peta Stabil + 32 Sesar + Windy Sync">v4.5 PRO</span>
+                        <span class="text-[9px] font-mono px-2 py-0.5 bg-cyan-950 text-cyan-400 border border-cyan-500/50 rounded font-bold" title="Versi Rilis Aplikasi v4.5 Peta Stabil + 37 Sesar + Windy Sync">v4.5 PRO</span>
                     </div>
-                    <p class="text-[10px] font-mono text-emerald-400 mt-0.5 font-bold flex items-center gap-1.5 uppercase" title="Status Sinyal Feed Seismologi BMKG Real-Time">
+                    <p id="lbl-live-sub-title" class="text-[10px] font-mono text-emerald-400 mt-0.5 font-bold flex items-center gap-1.5 uppercase" title="Status Sinyal Feed Seismologi BMKG Real-Time">
                         <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span> LIVE SEISMIC &amp; GEOTECHNICAL MONITORING
                     </p>
                 </div>
@@ -571,7 +417,7 @@
                         </div>
                     </div>
                     <div class="border-l border-theme pl-3" title="Status Peringatan Dini Bencana">
-                        <div class="text-[9px] font-mono text-slate-400">STATUS SIAGA:</div>
+                        <div id="lbl-status-siaga-text" class="text-[9px] font-mono text-slate-400">STATUS SIAGA:</div>
                         <span id="top-alert-status-badge" class="text-xs font-black text-emerald-400 font-mono">NORMAL</span>
                     </div>
                 </div>
@@ -601,8 +447,36 @@
                     <button onclick="stopTsunamiSiren()" id="mainBtnMute" class="px-2.5 py-1.5 text-[10px] rounded font-tech font-black bg-red-950 text-red-400 border border-red-800/60 hover:bg-red-900 cursor-pointer uppercase" title="Mute Suara Sirine"><i class="fa-solid fa-volume-xmark"></i></button>
                 </div>
                 
-                <!-- Utilities -->
-                <div class="flex items-center gap-1.5">
+                <!-- Utilities & SEISMIC SITE REPORT PRO BUTTON -->
+                <div class="flex items-center gap-1.5 flex-wrap">
+                    
+                    <!-- TOMBOL ICON SEISMIC SITE REPORT (LINK TAB BARU) -->
+                    <a href="https://adikds-byte.github.io/Seismic_Site_Report_Pro/" target="_blank" rel="noopener noreferrer" class="bg-gradient-to-r from-rose-950 via-slate-900 to-amber-950 text-amber-300 hover:from-rose-900 hover:to-amber-900 text-[10px] font-mono font-black px-3 py-2.5 rounded-lg border-2 border-amber-500/70 hover:border-amber-400 cursor-pointer transition-all shadow-[0_0_15px_rgba(245,158,11,0.35)] flex items-center gap-1.5 group" title="Buka Aplikasi Seismic Site Report Pro di Tab Baru (SNI 1726 & PuSGeN 2024)">
+                        <i class="fa-solid fa-chart-area text-rose-400 text-xs group-hover:scale-110 transition-transform animate-pulse"></i>
+                        <span class="tracking-wide">SEISMIC SITE REPORT</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-amber-400 group-hover:text-white transition-colors"></i>
+                    </a>
+
+                    <!-- TOMBOL TRANSLATE BAHASA (ID / EN) -->
+                    <button type="button" onclick="toggleAppLanguage()" id="btnAppLang" class="px-2.5 py-2 rounded-lg bg-cyan-950/90 hover:bg-cyan-900 text-cyan-200 border border-cyan-500/70 font-bold flex items-center gap-1.5 transition shadow cursor-pointer text-[10px] font-mono" title="Terjemahkan Bahasa / Switch Language (ID / EN)">
+                        <i class="fa-solid fa-language text-sm text-cyan-400"></i>
+                        <span id="currentLangBadge" class="font-mono text-xs font-black">ID</span>
+                    </button>
+
+                    <!-- KONTROL BESARKAN TEKS (A- / 100% / A+) -->
+                    <div class="inline-flex items-center rounded-lg bg-slate-900 border border-cyan-500/60 p-0.5 text-xs font-mono shadow" title="Pengatur Ukuran Teks (Zoom Teks agar Lebih Mudah Terbaca)">
+                        <button type="button" onclick="adjustTextSize(-1)" class="px-2 py-1 hover:bg-slate-800 text-slate-300 hover:text-white rounded transition flex items-center gap-0.5 cursor-pointer" title="Kecilkan Teks (A-)">
+                            <span class="text-[11px] font-bold">A</span><i class="fa-solid fa-minus text-[8px]"></i>
+                        </button>
+                        <button type="button" onclick="resetTextSize()" class="px-2 py-1 hover:bg-slate-800 text-cyan-300 font-bold rounded transition flex items-center gap-1 cursor-pointer" title="Reset Ukuran Teks Normal (100%)">
+                            <i class="fa-solid fa-text-height text-cyan-400"></i>
+                            <span id="textSizeLabel">100%</span>
+                        </button>
+                        <button type="button" onclick="adjustTextSize(1)" class="px-2 py-1 hover:bg-slate-800 text-slate-300 hover:text-white rounded transition flex items-center gap-0.5 cursor-pointer" title="Besarkan Teks (A+)">
+                            <span class="text-sm font-bold">A</span><i class="fa-solid fa-plus text-[8px]"></i>
+                        </button>
+                    </div>
+
                     <button type="button" onclick="toggleThemeInterface()" class="bg-inner-box color-main hover:bg-cyan-600 hover:text-white p-2.5 rounded-lg cursor-pointer transition-colors shadow-sm" title="Ganti Mode Gelap / Terang (Shortcut: T)">
                         <i id="themeIcon" class="fa-solid fa-moon text-sm"></i>
                     </button>
@@ -632,7 +506,7 @@
             <!-- PANEL KIRI: INDIKATOR PESISIR, MEGATHRUST & MITIGASI -->
             <section id="leftPanelSection" class="lg:col-span-3 bg-[var(--bg-card)] p-3.5 rounded-xl border-2 border-theme flex flex-col h-[660px] shadow-lg glass-panel" title="Panel Indikator Pesisir & Megathrust">
                 <div class="flex items-center justify-between border-b border-theme pb-2.5 shrink-0">
-                    <h2 class="font-tech text-xs md:text-sm font-black color-main flex items-center gap-2 uppercase tracking-wider">
+                    <h2 id="left-panel-title" class="font-tech text-xs md:text-sm font-black color-main flex items-center gap-2 uppercase tracking-wider">
                         <i class="fa-solid fa-volcano text-amber-400"></i> Tektonik &amp; Pesisir
                     </h2>
                     <span class="text-[9px] font-mono text-cyan-400 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-800">MEGATHRUST ZONE</span>
@@ -642,20 +516,20 @@
                     
                     <!-- Indikator Alami Pesisir -->
                     <div class="space-y-2">
-                        <span class="text-[10px] font-tech font-bold text-slate-400 uppercase tracking-wider block">Indikator Alami Tsunami</span>
+                        <span id="nat-ind-header" class="text-[10px] font-tech font-bold text-slate-400 uppercase tracking-wider block">Indikator Alami Tsunami</span>
                         
                         <div class="p-2.5 bg-inner-box rounded-xl border-l-4 border-cyan-500 shadow-sm">
-                            <span class="text-cyan-400 font-tech text-[11px] font-black block mb-0.5">GUNCANGAN KUAT &gt; 20 DETIK</span>
+                            <span id="shake-20s-title" class="text-cyan-400 font-tech text-[11px] font-black block mb-0.5">GUNCANGAN KUAT &gt; 20 DETIK</span>
                             <p class="text-[10px] color-sub leading-snug">Guncangan seismik panjang menandakan pelepasan energi sesar megathrust laut dalam yang mampu memicu tsunami.</p>
                         </div>
 
                         <div class="p-2.5 bg-inner-box rounded-xl border-l-4 border-amber-500 shadow-sm">
-                            <span class="text-amber-400 font-tech text-[11px] font-black block mb-0.5">SURUT AIR LAUT EKSTREM</span>
+                            <span id="recession-title" class="text-amber-400 font-tech text-[11px] font-black block mb-0.5">SURUT AIR LAUT EKSTREM</span>
                             <p class="text-[10px] color-sub leading-snug">Mundurnya garis pantai secara mendadak akibat penurunan vertikal dasar samudra (*sea-bottom subsidence*).</p>
                         </div>
 
                         <div class="p-2.5 bg-inner-box rounded-xl border-l-4 border-rose-500 shadow-sm">
-                            <span class="text-rose-400 font-tech text-[11px] font-black block mb-0.5">DENTUMAN GEMURUH LAUT</span>
+                            <span id="roar-title" class="text-rose-400 font-tech text-[11px] font-black block mb-0.5">DENTUMAN GEMURUH LAUT</span>
                             <p class="text-[10px] color-sub leading-snug">Suara gemuruh frekuensi rendah dari cakrawala laut menandakan gelombang tsunami mendekati perairan dangkal.</p>
                         </div>
                     </div>
@@ -822,7 +696,7 @@
                             </div>
                         </div>
 
-                                                <!-- BELAKANG: EMBEDDED WINDY WAVE & MARITIME RADAR -->
+                        <!-- BELAKANG: EMBEDDED WINDY WAVE & MARITIME RADAR -->
                         <div class="flip-back border-2 border-amber-500/70 shadow-2xl bg-[#020617] rounded-xl overflow-hidden relative" id="backWeatherHolder">
                             <iframe id="dashboardWeatherIframe" allow="geolocation; fullscreen" loading="eager" class="w-full h-full rounded-xl block pointer-events-auto" src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=default&metricWind=default&zoom=4&overlay=waves&product=ecmwf&level=surface&lat=-2.5&lon=118.0&marker=false" frameborder="0" title="Radar Gelombang Laut & Cuaca Maritim Windy"></iframe>
                         </div>
@@ -832,7 +706,7 @@
                 <!-- 4 PILAR TEKNOLOGI INATEWS -->
                 <div id="centerPilarTechSection" class="bg-[var(--bg-card)] p-3 rounded-xl border-2 border-theme shadow-md glass-panel shrink-0">
                     <div class="flex justify-between items-center border-b border-theme pb-2 mb-2">
-                        <h3 class="font-tech text-xs font-black text-cyan-400 uppercase tracking-wider">
+                        <h3 id="pilar-section-title" class="font-tech text-xs font-black text-cyan-400 uppercase tracking-wider">
                             <i class="fa-solid fa-microchip text-slate-400 mr-1"></i> 4 Pilar Subsistem Deteksi Dini InaTEWS
                         </h3>
                         <span class="text-[9px] font-mono text-slate-400">KLIK PILAR UNTUK DETAIL</span>
@@ -858,7 +732,7 @@
                 <!-- Simulator Parameter Gempa & Geoteknik -->
                 <div class="mb-3 shrink-0">
                     <div class="flex items-center justify-between border-b border-theme pb-2 mb-2">
-                        <h2 class="font-tech text-xs md:text-sm font-black text-cyan-400 flex items-center gap-1.5 uppercase tracking-wider">
+                        <h2 id="sim-section-title" class="font-tech text-xs md:text-sm font-black text-cyan-400 flex items-center gap-1.5 uppercase tracking-wider">
                             <i class="fa-solid fa-sliders text-amber-400"></i> Simulator Seismik
                         </h2>
                         <span class="text-[9px] font-mono text-cyan-400 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-800">ATENUASI PGA</span>
@@ -922,7 +796,7 @@
                 <!-- Telemetri Gempa Terkini Real-Time BMKG -->
                 <div class="flex-1 flex flex-col overflow-hidden space-y-2">
                     <div class="flex items-center justify-between border-b border-theme pb-1.5 shrink-0">
-                        <h3 class="font-tech text-xs font-black text-cyan-400 uppercase tracking-wider">
+                        <h3 id="latest-quake-title" class="font-tech text-xs font-black text-cyan-400 uppercase tracking-wider">
                             <i class="fa-solid fa-satellite-dish animate-pulse text-emerald-400 mr-1"></i> Gempa Terkini (BMKG Feed)
                         </h3>
                         <span class="text-[8px] font-mono text-emerald-400">AUTOMATIC FEED</span>
@@ -953,7 +827,7 @@
 
                     <!-- Status Diseminasi Tsunami Card -->
                     <div id="tsunamiStatusCard" class="p-3 bg-slate-950 border-2 border-theme rounded-xl text-center flex flex-col justify-center items-center shadow-sm flex-1">
-                        <span class="text-[9px] font-tech text-slate-400 block font-bold uppercase tracking-wider">STATUS DISEMINASI BERITA BMKG</span>
+                        <span id="tsunami-dissem-header" class="text-[9px] font-tech text-slate-400 block font-bold uppercase tracking-wider">STATUS DISEMINASI BERITA BMKG</span>
                         <div id="tsunami-icon" class="my-1 text-2xl text-slate-400"><i class="fa-solid fa-wave-square"></i></div>
                         <span id="tsunami-status-text" class="font-tech text-xs font-black text-slate-300 tracking-wide uppercase leading-tight">NORMAL - TIDAK BERPOTENSI TSUNAMI</span>
                     </div>
@@ -1003,8 +877,8 @@
                     <a href="https://vsi.esdm.go.id" target="_blank" class="p-1.5 bg-inner-box border border-theme rounded text-rose-300 hover:bg-rose-950/40 transition flex items-center justify-between">
                         <span>PVMBG Geologi</span> <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
                     </a>
-                    <a href="https://brin.go.id" target="_blank" class="p-1.5 bg-inner-box border border-theme rounded text-cyan-300 hover:bg-cyan-950/40 transition flex items-center justify-between">
-                        <span>BRIN Riset</span> <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                    <a href="https://adikds-byte.github.io/Seismic_Site_Report_Pro/" target="_blank" class="p-1.5 bg-inner-box border border-amber-500/60 rounded text-amber-300 hover:bg-amber-950/40 transition flex items-center justify-between">
+                        <span>Seismic Site Report</span> <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
                     </a>
                 </div>
             </div>
@@ -1136,7 +1010,7 @@
             <i class="fa-solid fa-cloud-sun-rain text-sm"></i>
         </button>
 
-        <button onclick="turnOnScreensaverMode()" class="h-11 w-11 rounded-full bg-gradient-to-r from-slate-900 to-indigo-950 border-2 border-purple-500 flex items-center justify-center text-purple-400 shadow-2xl cursor-pointer hover:scale-110 transition-all" title="Aktifkan Mode Screensaver Kucing Siber">
+        <button onclick="turnOnScreensaverMode()" class="h-11 w-11 rounded-full bg-gradient-to-r from-slate-900 to-indigo-950 border-2 border-purple-500 flex items-center justify-center text-purple-400 shadow-2xl cursor-pointer hover:scale-110 transition-all" title="Aktifkan Mode Screensaver Orbit Bumi 3D">
             <i class="fa-solid fa-desktop text-sm"></i>
         </button>
 
@@ -1193,7 +1067,7 @@
             <button onclick="triggerChatShortcut('creator')" class="px-2.5 py-1 bg-gradient-to-r from-fuchsia-950 to-pink-950 border border-fuchsia-500/80 rounded-lg text-[9px] font-black text-fuchsia-300 hover:from-fuchsia-800 hover:to-pink-800 hover:text-white transition-all cursor-pointer shadow-sm flex items-center gap-1" title="Data Lengkap Programmer Pengembang (Mohamad Hartadi)">
                 👨‍💻 <span>Creator Data</span>
             </button>
-            <button onclick="triggerChatShortcut('my_aplikasi')" class="px-2.5 py-1 bg-gradient-to-r from-indigo-950 to-purple-950 border border-indigo-500/80 rounded-lg text-[9px] font-black text-indigo-300 hover:from-indigo-800 hover:to-purple-800 hover:text-white transition-all cursor-pointer shadow-sm flex items-center gap-1" title="Direktori 38 Portofolio Aplikasi Ekosistem">
+            <button onclick="triggerChatShortcut('my_aplikasi')" class="px-2.5 py-1 bg-gradient-to-r from-indigo-950 to-purple-950 border border-indigo-500/80 rounded-lg text-[9px] font-black text-indigo-300 hover:from-indigo-800 hover:to-purple-800 hover:text-white transition-all cursor-pointer shadow-sm flex items-center gap-1" title="Direktori Portofolio Aplikasi Ekosistem">
                 🚀 <span>My Aplikasi</span>
             </button>
             <button onclick="triggerChatShortcut('algoritma_analysis')" class="px-2.5 py-1 bg-gradient-to-r from-amber-950 to-orange-950 border border-amber-500/80 rounded-lg text-[9px] font-black text-amber-300 hover:from-amber-800 hover:to-orange-800 hover:text-white transition-all cursor-pointer shadow-sm flex items-center gap-1" title="Algoritma Analysis Multi-Metode GMPE & PSHA Seismik">
@@ -1225,59 +1099,74 @@
         </div>
     </div>
 
-        <!-- MODAL: CREATOR PROFILE -->
-    <div id="creatorModal" class="fixed inset-0 z-[10005] hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 select-none" onclick="if(event.target===this) closeCreatorModal()">
+    <!-- MODAL: CREATOR PROFILE DENGAN 3D MINI EARTH -->
+    <div id="creatorModal" class="fixed inset-0 z-[10005] hidden bg-black/85 backdrop-blur-md flex items-center justify-center p-4 select-none" onclick="if(event.target===this) closeCreatorModal()">
         <div class="bg-slate-900 border-2 border-fuchsia-500 rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-[0_0_50px_rgba(236,72,153,0.5)] relative">
             <button onclick="closeCreatorModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl cursor-pointer transition-colors"><i class="fa-solid fa-xmark"></i></button>
             
             <div class="text-center pb-3 mb-3 border-b border-slate-700 flex flex-col items-center">
-                <div class="h-24 w-24 relative mx-auto mb-3 flex items-center justify-center mt-2">
-                    <div class="programmer-avatar h-20 w-20 rounded-2xl bg-slate-950 border-2 border-fuchsia-500 flex items-center justify-center shadow-[0_0_25px_rgba(236,72,153,0.7)]">
-                        <i class="fa-solid fa-laptop-code text-fuchsia-400 text-3xl"></i>
-                        <div class="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_10px_#10b981] border-2 border-slate-950"></div>
-                        <div class="absolute -bottom-1 -left-1 w-3 h-3 bg-cyan-400 rounded-full animate-ping opacity-60"></div>
+                <div class="flex items-center justify-center gap-3 mb-2">
+                    <!-- 3D Mini Earth Globe in Creator Modal -->
+                    <div id="modalEarthCanvas" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full earth-glow-box bg-slate-900/60 border border-fuchsia-500/40 overflow-hidden shrink-0 shadow-lg cursor-grab active:cursor-grabbing" title="Bumi Nyata 3D (Sentuh/Geser untuk Memutar)"></div>
+
+                    <div class="programmer-avatar h-16 w-16 rounded-2xl bg-slate-950 border-2 border-fuchsia-500 flex items-center justify-center shadow-[0_0_25px_rgba(236,72,153,0.7)]">
+                        <i class="fa-solid fa-laptop-code text-fuchsia-400 text-2xl"></i>
+                        <div class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_10px_#10b981] border-2 border-slate-950"></div>
+                        <div class="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-cyan-400 rounded-full animate-ping opacity-60"></div>
                     </div>
-                    <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 text-[11px] font-mono font-black text-fuchsia-400 bg-slate-950 px-2 py-0.5 rounded-full border border-fuchsia-500/50 code-blink whitespace-nowrap">&lt;/&gt; CODING</div>
                 </div>
+                <div class="text-[10px] font-mono font-black text-fuchsia-400 bg-slate-950 px-2 py-0.5 rounded-full border border-fuchsia-500/50 code-blink mb-1">&lt;/&gt; LEAD DEVELOPER &amp; SYSTEM ARCHITECT</div>
 
                 <h3 class="text-lg sm:text-xl font-black font-tech text-fuchsia-400 tracking-wider">MOHAMAD HARTADI</h3>
                 <p class="text-[10px] font-mono font-bold text-slate-400 mt-0.5 uppercase tracking-widest">Lead System Architect &amp; Civil Engineer</p>
-                <span class="text-[9px] font-mono text-cyan-400 mt-1">Geotechnical Engineering &amp; Seismic Hazard Computing Specialist</span>
+                <span class="text-[9px] font-mono text-cyan-400 mt-0.5">Geotechnical Engineering &amp; Seismic Hazard Computing Specialist</span>
             </div>
             
-            <!-- Link Kontak & Media Sosial (Sesuai Desain Foto) -->
-            <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2.5 font-mono">
-                <a href="https://wa.me/6282231036047?text=Halo%20Mohamad%20Hartadi%20InaTEWS" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3.5 hover:bg-slate-900 p-2.5 rounded-lg transition-colors group cursor-pointer border border-transparent hover:border-emerald-500/40">
-                    <div class="w-10 h-10 rounded-full bg-emerald-950/80 border border-emerald-500/60 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(16,185,129,0.3)] group-hover:scale-110 transition-transform">
-                        <i class="fa-brands fa-whatsapp text-emerald-400 text-xl"></i>
+            <!-- Link Kontak & Media Sosial Resmi -->
+            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2 font-mono">
+                <a href="https://wa.me/6282231036047?text=Halo%20Mohamad%20Hartadi%20InaTEWS" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 hover:bg-slate-900 p-2 rounded-lg transition-colors group cursor-pointer border border-transparent hover:border-emerald-500/40">
+                    <div class="w-8 h-8 rounded-full bg-emerald-950/80 border border-emerald-500/60 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(16,185,129,0.3)] group-hover:scale-110 transition-transform">
+                        <i class="fa-brands fa-whatsapp text-emerald-400 text-base"></i>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <span class="block text-[9px] text-slate-400 tracking-wider uppercase font-bold mb-0.5">KONTAK WHATSAPP RESMI</span>
-                        <span class="text-emerald-400 text-sm font-mono font-black tracking-wider group-hover:underline block">082231036047</span>
+                        <span class="block text-[8px] text-slate-400 tracking-wider uppercase font-bold">KONTAK WHATSAPP RESMI</span>
+                        <span class="text-emerald-400 text-xs font-mono font-black tracking-wider group-hover:underline block">082231036047</span>
                     </div>
-                    <i class="fa-solid fa-arrow-up-right-from-square text-xs text-slate-600 group-hover:text-emerald-400"></i>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-600 group-hover:text-emerald-400"></i>
                 </a>
                 
-                <a href="https://www.facebook.com/m.hartadi" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3.5 hover:bg-slate-900 p-2.5 rounded-lg transition-colors group cursor-pointer border border-transparent hover:border-cyan-500/40">
-                    <div class="w-10 h-10 rounded-full bg-cyan-950/80 border border-cyan-500/60 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(6,182,212,0.3)] group-hover:scale-110 transition-transform">
-                        <i class="fa-brands fa-facebook text-cyan-400 text-xl"></i>
+                <a href="https://www.facebook.com/m.hartadi" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 hover:bg-slate-900 p-2 rounded-lg transition-colors group cursor-pointer border border-transparent hover:border-cyan-500/40">
+                    <div class="w-8 h-8 rounded-full bg-cyan-950/80 border border-cyan-500/60 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(6,182,212,0.3)] group-hover:scale-110 transition-transform">
+                        <i class="fa-brands fa-facebook text-cyan-400 text-base"></i>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <span class="block text-[9px] text-slate-400 tracking-wider uppercase font-bold mb-0.5">PROFIL FACEBOOK</span>
-                        <span class="text-cyan-400 text-sm font-mono font-black tracking-wider group-hover:underline block truncate">facebook.com/m.hartadi</span>
+                        <span class="block text-[8px] text-slate-400 tracking-wider uppercase font-bold">PROFIL FACEBOOK</span>
+                        <span class="text-cyan-400 text-xs font-mono font-black tracking-wider group-hover:underline block truncate">facebook.com/m.hartadi</span>
                     </div>
-                    <i class="fa-solid fa-arrow-up-right-from-square text-xs text-slate-600 group-hover:text-cyan-400"></i>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-600 group-hover:text-cyan-400"></i>
                 </a>
                 
-                <a href="https://newbieonline7.blogspot.com/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3.5 hover:bg-slate-900 p-2.5 rounded-lg transition-colors group cursor-pointer border border-transparent hover:border-pink-500/40">
-                    <div class="w-10 h-10 rounded-full bg-pink-950/80 border border-pink-500/60 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(236,72,153,0.3)] group-hover:scale-110 transition-transform">
-                        <i class="fa-solid fa-globe text-pink-400 text-xl"></i>
+                <a href="https://newbieonline7.blogspot.com/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 hover:bg-slate-900 p-2 rounded-lg transition-colors group cursor-pointer border border-transparent hover:border-pink-500/40">
+                    <div class="w-8 h-8 rounded-full bg-pink-950/80 border border-pink-500/60 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(236,72,153,0.3)] group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-globe text-pink-400 text-base"></i>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <span class="block text-[9px] text-slate-400 tracking-wider uppercase font-bold mb-0.5">PORTAL BLOG RESMI</span>
-                        <span class="text-pink-400 text-sm font-mono font-black tracking-wider group-hover:underline block truncate">newbieonline7.blogspot.com</span>
+                        <span class="block text-[8px] text-slate-400 tracking-wider uppercase font-bold">PORTAL BLOG RESMI</span>
+                        <span class="text-pink-400 text-xs font-mono font-black tracking-wider group-hover:underline block truncate">newbieonline7.blogspot.com</span>
                     </div>
-                    <i class="fa-solid fa-arrow-up-right-from-square text-xs text-slate-600 group-hover:text-pink-400"></i>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-600 group-hover:text-pink-400"></i>
+                </a>
+
+                <!-- Seismic Site Report Pro Link in Modal -->
+                <a href="https://adikds-byte.github.io/Seismic_Site_Report_Pro/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 hover:bg-slate-900 p-2 rounded-lg transition-colors group cursor-pointer border border-amber-500/40 bg-amber-950/20">
+                    <div class="w-8 h-8 rounded-full bg-amber-950/80 border border-amber-500/60 flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(245,158,11,0.3)] group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-chart-area text-amber-400 text-base"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <span class="block text-[8px] text-slate-400 tracking-wider uppercase font-bold">APLIKASI TERINTEGRASI</span>
+                        <span class="text-amber-300 text-xs font-mono font-black tracking-wider group-hover:underline block truncate">Seismic Site Report Pro</span>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-600 group-hover:text-amber-400"></i>
                 </a>
             </div>
         </div>
@@ -1291,7 +1180,7 @@
                     <div class="w-9 h-9 rounded-xl bg-rose-600/20 border border-rose-500/60 flex items-center justify-center text-rose-400"><i class="fa-solid fa-bolt"></i></div>
                     <div>
                         <h3 class="font-black text-sm text-white font-mono tracking-wide">DAFTAR SESAR AKTIF NUSANTARA</h3>
-                        <p class="text-[10px] color-sub">37 sesar & zona subduksi aktif — PuSGeN 2024 & Pusat Geologi (PusGeol)</p>
+                        <p class="text-[10px] color-sub">37 sesar &amp; zona subduksi aktif — PuSGeN 2024 &amp; Pusat Geologi (PusGeol)</p>
                     </div>
                 </div>
                 <button onclick="closeFaultsModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-rose-700 text-white font-bold cursor-pointer transition-colors"><i class="fa-solid fa-xmark"></i></button>
@@ -1327,8 +1216,8 @@
                 </div>
 
                 <div class="bg-inner-box p-3 rounded-xl border border-theme">
-                    <span class="text-rose-400 font-tech font-bold block mb-1">4. ASISTEN AI DENGAN VOICE &amp; MULTI-KNOWLEDGE</span>
-                    Gunakan input suara atau ketik kueri di Chatbot. Sistem terhubung dengan ensiklopedia Wikipedia, Google Search, dan direktori 38 portofolio aplikasi terpadu.
+                    <span class="text-rose-400 font-tech font-bold block mb-1">4. INTEGRASI SEISMIC SITE REPORT PRO</span>
+                    Gunakan tombol <b>SEISMIC SITE REPORT</b> pada bilah atas dasbor untuk membuka kalkulator respons spektrum percepatan gempa tapak (SNI 1726 &amp; PuSGeN 2024).
                 </div>
             </div>
         </div>
@@ -1337,6 +1226,447 @@
     <!-- JAVASCRIPT LOGIC ENGINE -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
+        // ==================== 1. THREE.JS 3D REALISTIC EARTH ENGINES ====================
+        const EARTH_ATMOS_TEXTURE = 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg';
+        const EARTH_ATMOS_FALLBACK = 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@master/examples/textures/planets/earth_atmos_2048.jpg';
+        const EARTH_CLOUDS_TEXTURE = 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_clouds_1024.png';
+        const EARTH_CLOUDS_FALLBACK = 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@master/examples/textures/planets/earth_clouds_1024.png';
+
+        function createProceduralEarthCanvas() {
+            const c = document.createElement('canvas');
+            c.width = 1024; c.height = 512;
+            const ctx = c.getContext('2d');
+            const grad = ctx.createLinearGradient(0, 0, 0, 512);
+            grad.addColorStop(0, '#0c2340'); grad.addColorStop(0.5, '#0a3871'); grad.addColorStop(1, '#0c2340');
+            ctx.fillStyle = grad; ctx.fillRect(0, 0, 1024, 512);
+            ctx.fillStyle = '#10b981';
+            const continents = [
+                [200, 150, 140, 80], [280, 280, 100, 160], [520, 130, 220, 100],
+                [500, 220, 130, 150], [700, 160, 200, 120], [800, 320, 120, 90]
+            ];
+            continents.forEach(([x, y, w, h]) => {
+                ctx.beginPath();
+                ctx.ellipse(x, y, w/2, h/2, 0, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.fillStyle = '#e0f2fe';
+            ctx.fillRect(0, 0, 1024, 35);
+            ctx.fillRect(0, 480, 1024, 32);
+            return new THREE.CanvasTexture(c);
+        }
+
+        function createProceduralCloudsCanvas() {
+            const c = document.createElement('canvas');
+            c.width = 1024; c.height = 512;
+            const ctx = c.getContext('2d');
+            ctx.clearRect(0, 0, 1024, 512);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+            for (let i = 0; i < 45; i++) {
+                const x = (i * 25 + Math.sin(i) * 60) % 1024;
+                const y = 60 + (i * 12) % 380;
+                const rx = 40 + (i % 7) * 15;
+                const ry = 15 + (i % 5) * 8;
+                ctx.beginPath();
+                ctx.ellipse(x, y, rx, ry, Math.sin(i) * 0.4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            return new THREE.CanvasTexture(c);
+        }
+
+        function loadSafeTexture(loader, primary, fallback, isCloud, onSuccess) {
+            loader.load(primary, onSuccess, undefined, () => {
+                loader.load(fallback, onSuccess, undefined, () => {
+                    const fallbackTex = isCloud ? createProceduralCloudsCanvas() : createProceduralEarthCanvas();
+                    onSuccess(fallbackTex);
+                });
+            });
+        }
+
+        function buildEarthScene(radius) {
+            const scene = new THREE.Scene();
+            const ambient = new THREE.AmbientLight(0xffffff, 0.65);
+            scene.add(ambient);
+            const dir = new THREE.DirectionalLight(0xffffff, 1.4);
+            dir.position.set(5, 3, 5);
+            scene.add(dir);
+
+            const textureLoader = new THREE.TextureLoader();
+            const earthMat = new THREE.MeshStandardMaterial({
+                roughness: 0.55, metalness: 0.1, color: 0x0284c7
+            });
+            const globe = new THREE.Mesh(new THREE.SphereGeometry(radius, 48, 48), earthMat);
+            scene.add(globe);
+
+            loadSafeTexture(textureLoader, EARTH_ATMOS_TEXTURE, EARTH_ATMOS_FALLBACK, false, tex => {
+                earthMat.map = tex;
+                earthMat.color.setHex(0xffffff);
+                earthMat.needsUpdate = true;
+            });
+
+            const cloudMat = new THREE.MeshStandardMaterial({
+                transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending
+            });
+            const clouds = new THREE.Mesh(new THREE.SphereGeometry(radius * 1.015, 48, 48), cloudMat);
+            scene.add(clouds);
+
+            loadSafeTexture(textureLoader, EARTH_CLOUDS_TEXTURE, EARTH_CLOUDS_FALLBACK, true, ct => {
+                cloudMat.map = ct;
+                cloudMat.needsUpdate = true;
+            });
+
+            const haloMat = new THREE.MeshBasicMaterial({
+                color: 0x06b6d4, transparent: true, opacity: 0.25, side: THREE.BackSide
+            });
+            const halo = new THREE.Mesh(new THREE.SphereGeometry(radius * 1.06, 32, 32), haloMat);
+            scene.add(halo);
+
+            const orbitLine = new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints(new THREE.EllipseCurve(0, 0, radius * 1.45, radius * 1.2, 0, Math.PI * 2, false, 0).getPoints(64).map(pt => new THREE.Vector3(pt.x, 0, pt.y))),
+                new THREE.LineBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.55 })
+            );
+            orbitLine.rotation.x = Math.PI / 3.5;
+            scene.add(orbitLine);
+
+            const sat = new THREE.Group();
+            sat.add(new THREE.Mesh(new THREE.BoxGeometry(radius * 0.055, radius * 0.038, radius * 0.038), new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.85, roughness: 0.2 })));
+            sat.add(new THREE.Mesh(new THREE.BoxGeometry(radius * 0.13, radius * 0.007, radius * 0.048), new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.9, roughness: 0.1 })));
+            scene.add(sat);
+
+            return { scene, globe, clouds, halo, sat };
+        }
+
+        var bootEarthObj = null, bootEarthRAF = 0;
+        function initLoadingRealisticEarth() {
+            const canvas = document.getElementById('loadingEarthCanvas');
+            if (!canvas || typeof THREE === 'undefined') return;
+            try {
+                const radius = 1.35;
+                const width = canvas.clientWidth || 320;
+                const height = canvas.clientHeight || 320;
+                const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+                camera.position.z = radius * 3.35;
+                const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(width, height);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                canvas.innerHTML = '';
+                canvas.appendChild(renderer.domElement);
+
+                bootEarthObj = buildEarthScene(radius);
+                let angle = 0;
+                let rotSpeed = 0.004;
+                let cloudSpeed = 0.0065;
+                bootEarthObj.setSpeed = function(s) { rotSpeed = s; cloudSpeed = s * 1.6; };
+                
+                function renderBoot() {
+                    bootEarthRAF = requestAnimationFrame(renderBoot);
+                    bootEarthObj.globe.rotation.y += rotSpeed;
+                    bootEarthObj.clouds.rotation.y += cloudSpeed;
+                    angle += 0.02;
+                    const x = 1.85 * Math.cos(angle), z = 1.55 * Math.sin(angle);
+                    bootEarthObj.sat.position.set(x, z * Math.sin(Math.PI / 3.5), z * Math.cos(Math.PI / 3.5));
+                    renderer.render(bootEarthObj.scene, camera);
+                }
+                renderBoot();
+
+                let isDragging = false;
+                let previousMousePosition = { x: 0, y: 0 };
+                canvas.addEventListener('pointerdown', (e) => {
+                    isDragging = true;
+                    previousMousePosition = { x: e.clientX, y: e.clientY };
+                    if (canvas.setPointerCapture) {
+                        try { canvas.setPointerCapture(e.pointerId); } catch(err) {}
+                    }
+                });
+                window.addEventListener('pointermove', (e) => {
+                    if (!isDragging || !bootEarthObj) return;
+                    const deltaX = e.clientX - previousMousePosition.x;
+                    const deltaY = e.clientY - previousMousePosition.y;
+                    bootEarthObj.globe.rotation.y += deltaX * 0.008;
+                    bootEarthObj.clouds.rotation.y += deltaX * 0.009;
+                    bootEarthObj.globe.rotation.x += deltaY * 0.005;
+                    bootEarthObj.clouds.rotation.x += deltaY * 0.005;
+                    previousMousePosition = { x: e.clientX, y: e.clientY };
+                });
+                window.addEventListener('pointerup', (e) => {
+                    isDragging = false;
+                    if (canvas.releasePointerCapture) {
+                        try { canvas.releasePointerCapture(e.pointerId); } catch(err) {}
+                    }
+                });
+                window.addEventListener('pointercancel', () => { isDragging = false; });
+            } catch (err) { console.warn('Boot Earth:', err); }
+        }
+
+        var ssEarthObj = null, ssEarthRAF = 0, ssEarthInit = false;
+        function initScreensaverRealisticEarth() {
+            const canvas = document.getElementById('ssEarthCanvas');
+            if (!canvas || typeof THREE === 'undefined') return;
+            try {
+                const w = canvas.offsetWidth || window.innerWidth;
+                const h = canvas.offsetHeight || window.innerHeight;
+                const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
+                camera.position.z = 4.5;
+                const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(w, h);
+                canvas.innerHTML = '';
+                canvas.appendChild(renderer.domElement);
+
+                ssEarthObj = buildEarthScene(1.55);
+                ssEarthObj.camera = camera;
+                ssEarthObj.renderer = renderer;
+                ssEarthObj.loop = function() {
+                    ssEarthRAF = requestAnimationFrame(ssEarthObj.loop);
+                    ssEarthObj.globe.rotation.y += 0.002;
+                    ssEarthObj.clouds.rotation.y += 0.003;
+                    ssEarthObj.renderer.render(ssEarthObj.scene, ssEarthObj.camera);
+                };
+                ssEarthInit = true;
+            } catch(e) { ssEarthInit = true; }
+        }
+
+        var bgEarthObj = null;
+        function initBackgroundRealisticEarth() {
+            const canvas = document.getElementById('bgEarthCanvas');
+            if (!canvas || typeof THREE === 'undefined') return;
+            try {
+                const radius = 1.45;
+                const w = window.innerWidth, h = window.innerHeight;
+                const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
+                camera.position.z = 4.2;
+                camera.position.x = 0.5;
+                const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(w, h);
+                canvas.innerHTML = '';
+                canvas.appendChild(renderer.domElement);
+
+                bgEarthObj = buildEarthScene(radius);
+                function renderBg() {
+                    requestAnimationFrame(renderBg);
+                    bgEarthObj.globe.rotation.y += 0.0018;
+                    bgEarthObj.clouds.rotation.y += 0.0026;
+                    renderer.render(bgEarthObj.scene, camera);
+                }
+                renderBg();
+            } catch(e) {}
+        }
+
+        var modalEarthObj = null, modalEarthRAF = 0, modalEarthInit = false;
+        function initModalRealisticEarth() {
+            const canvas = document.getElementById('modalEarthCanvas');
+            if (!canvas || typeof THREE === 'undefined') return;
+            try {
+                const radius = 1.35;
+                const w = canvas.clientWidth || 80;
+                const h = canvas.clientHeight || 80;
+                const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
+                camera.position.z = radius * 3.35;
+                const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(w, h);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                canvas.innerHTML = '';
+                canvas.appendChild(renderer.domElement);
+
+                modalEarthObj = buildEarthScene(radius);
+                modalEarthObj.camera = camera;
+                modalEarthObj.renderer = renderer;
+
+                let angle = 0;
+                function renderModalEarth() {
+                    modalEarthRAF = requestAnimationFrame(renderModalEarth);
+                    modalEarthObj.globe.rotation.y += 0.006;
+                    modalEarthObj.clouds.rotation.y += 0.009;
+                    angle += 0.03;
+                    const x = radius * 1.45 * Math.cos(angle), z = radius * 1.2 * Math.sin(angle);
+                    modalEarthObj.sat.position.set(x, z * Math.sin(Math.PI / 3.5), z * Math.cos(Math.PI / 3.5));
+                    renderer.render(modalEarthObj.scene, camera);
+                }
+                renderModalEarth();
+                modalEarthInit = true;
+            } catch(e) { console.warn('Modal Earth:', e); }
+        }
+
+        
+        // ==================== LANGUAGE TRANSLATION (I18N) & TEXT ZOOM ENGINES ====================
+        let currentAppLang = 'id';
+        const TEXT_ZOOM_LEVELS = [85, 90, 95, 100, 110, 120, 130, 140, 150];
+        let currentTextZoomIndex = 3; // 100% default
+
+        const I18N_DICTIONARY = {
+            id: {
+                liveSubTitle: '<span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span> MONITORING SEISMIK &amp; GEOTEKNIK REAL-TIME',
+                statusSiagaLabel: 'STATUS SIAGA:',
+                leftTitle: '<i class="fa-solid fa-volcano text-amber-400"></i> Tektonik &amp; Pesisir',
+                natIndHeader: 'Indikator Alami Tsunami',
+                shake20Title: 'GUNCANGAN KUAT &gt; 20 DETIK',
+                recessionTitle: 'SURUT AIR LAUT EKSTREM',
+                roarTitle: 'DENTUMAN GEMURUH LAUT',
+                pilarTitle: '<i class="fa-solid fa-microchip text-slate-400 mr-1"></i> 4 Pilar Subsistem Deteksi Dini InaTEWS',
+                simTitle: '<i class="fa-solid fa-sliders text-amber-400"></i> Simulator Seismik',
+                latestQuakeTitle: '<i class="fa-solid fa-satellite-dish animate-pulse text-emerald-400 mr-1"></i> Gempa Terkini (BMKG Feed)',
+                tsunamiDissem: 'STATUS DISEMINASI BERITA BMKG',
+                mapGisTitle: '<i class="fa-solid fa-earth-asia animate-pulse text-amber-400"></i> Peta Episentrum Seismik',
+                mapRadarTitle: '<i class="fa-solid fa-water animate-pulse text-cyan-400"></i> Radar Laut &amp; Cuaca Maritim',
+                btnViewMap: 'PETA GIS',
+                btnViewWeather: 'RADAR LAUT',
+                ssTitle: 'Screensaver Orbit Bumi &amp; Pemantauan Seismik InaTEWS Pro v4.5',
+                ssSub: 'Tekan ESC atau klik layar untuk kembali ke dasbor',
+                ssStatus: 'STATUS MONITORING SEISMIK &amp; TSUNAMI: NORMAL (HIJAU) &bull; 180 STASIUN AKTIF',
+                ssQuoteHdr: 'MUTIARA KEBIJAKSANAAN &amp; MOTIVASI MITIGASI'
+            },
+            en: {
+                liveSubTitle: '<span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span> LIVE SEISMIC &amp; GEOTECHNICAL MONITORING',
+                statusSiagaLabel: 'ALERT STATUS:',
+                leftTitle: '<i class="fa-solid fa-volcano text-amber-400"></i> Tectonics &amp; Coastal',
+                natIndHeader: 'Natural Tsunami Indicators',
+                shake20Title: 'STRONG SHAKING &gt; 20 SECONDS',
+                recessionTitle: 'EXTREME SEA RECESSION',
+                roarTitle: 'LOW-FREQUENCY OCEAN ROAR',
+                pilarTitle: '<i class="fa-solid fa-microchip text-slate-400 mr-1"></i> 4 Early Warning Subsystems of InaTEWS',
+                simTitle: '<i class="fa-solid fa-sliders text-amber-400"></i> Seismic Simulator',
+                latestQuakeTitle: '<i class="fa-solid fa-satellite-dish animate-pulse text-emerald-400 mr-1"></i> Latest Earthquake (BMKG Feed)',
+                tsunamiDissem: 'BMKG TSUNAMI DISSEMINATION STATUS',
+                mapGisTitle: '<i class="fa-solid fa-earth-asia animate-pulse text-amber-400"></i> Seismic Epicenter Map',
+                mapRadarTitle: '<i class="fa-solid fa-water animate-pulse text-cyan-400"></i> Marine Weather &amp; Waves Radar',
+                btnViewMap: 'GIS MAP',
+                btnViewWeather: 'SEA RADAR',
+                ssTitle: 'Earth Orbit Screensaver &amp; InaTEWS Pro v4.5 Seismic Monitoring',
+                ssSub: 'Press ESC or click screen to return to dashboard',
+                ssStatus: 'INATEWS MONITORING STATUS: NORMAL (GREEN) &bull; 180 SEISMIC STATIONS ACTIVE',
+                ssQuoteHdr: 'WISDOM &amp; DISASTER MITIGATION PRINCIPLES'
+            }
+        };
+
+        function applyLanguage(lang, showToastMsg = true) {
+            currentAppLang = lang;
+            try { localStorage.setItem('inatews_lang', lang); } catch(e) {}
+
+            const badge = document.getElementById('currentLangBadge');
+            if (badge) badge.innerText = lang.toUpperCase();
+
+            const d = I18N_DICTIONARY[lang] || I18N_DICTIONARY.id;
+
+            if (document.getElementById('lbl-live-sub-title')) document.getElementById('lbl-live-sub-title').innerHTML = d.liveSubTitle;
+            if (document.getElementById('lbl-status-siaga-text')) document.getElementById('lbl-status-siaga-text').innerText = d.statusSiagaLabel;
+            if (document.getElementById('left-panel-title')) document.getElementById('left-panel-title').innerHTML = d.leftTitle;
+            if (document.getElementById('nat-ind-header')) document.getElementById('nat-ind-header').innerText = d.natIndHeader;
+            if (document.getElementById('shake-20s-title')) document.getElementById('shake-20s-title').innerHTML = d.shake20Title;
+            if (document.getElementById('recession-title')) document.getElementById('recession-title').innerHTML = d.recessionTitle;
+            if (document.getElementById('roar-title')) document.getElementById('roar-title').innerHTML = d.roarTitle;
+            if (document.getElementById('pilar-section-title')) document.getElementById('pilar-section-title').innerHTML = d.pilarTitle;
+            if (document.getElementById('sim-section-title')) document.getElementById('sim-section-title').innerHTML = d.simTitle;
+            if (document.getElementById('latest-quake-title')) document.getElementById('latest-quake-title').innerHTML = d.latestQuakeTitle;
+            if (document.getElementById('tsunami-dissem-header')) document.getElementById('tsunami-dissem-header').innerText = d.tsunamiDissem;
+            if (document.getElementById('screensaver-top-title')) document.getElementById('screensaver-top-title').innerText = d.ssTitle;
+            if (document.getElementById('screensaver-top-sub')) document.getElementById('screensaver-top-sub').innerText = d.ssSub;
+            if (document.getElementById('screensaver-status-badge')) document.getElementById('screensaver-status-badge').innerHTML = d.ssStatus;
+            if (document.getElementById('screensaver-quote-header')) document.getElementById('screensaver-quote-header').innerText = d.ssQuoteHdr;
+
+            const flipper = document.getElementById('mapWeatherFlipper');
+            const mapTitle = document.getElementById('mapHeaderTitle');
+            if (mapTitle) {
+                if (flipper && flipper.classList.contains('flipped')) {
+                    mapTitle.innerHTML = d.mapRadarTitle;
+                } else {
+                    mapTitle.innerHTML = d.mapGisTitle;
+                }
+            }
+
+            const btnMap = document.getElementById('btnViewMap');
+            const btnWeather = document.getElementById('btnViewWeather');
+            if (btnMap) btnMap.innerText = d.btnViewMap;
+            if (btnWeather) btnWeather.innerText = d.btnViewWeather;
+
+            if (showToastMsg) {
+                showToast(lang === 'en' ? 'Language switched to English' : 'Bahasa berhasil diubah ke Bahasa Indonesia', 'success');
+            }
+        }
+
+        function toggleAppLanguage() {
+            const nextLang = currentAppLang === 'id' ? 'en' : 'id';
+            applyLanguage(nextLang, true);
+        }
+
+        function initAppLanguage() {
+            try {
+                const savedLang = localStorage.getItem('inatews_lang');
+                if (savedLang && (savedLang === 'id' || savedLang === 'en')) {
+                    applyLanguage(savedLang, false);
+                    return;
+                }
+            } catch(e) {}
+            applyLanguage('id', false);
+        }
+
+        // --- KONTROL BESARKAN TEKS (A- / 100% / A+) ---
+        function applyTextZoom(index, showToastMsg = true) {
+            if (index < 0) index = 0;
+            if (index >= TEXT_ZOOM_LEVELS.length) index = TEXT_ZOOM_LEVELS.length - 1;
+            currentTextZoomIndex = index;
+            const pct = TEXT_ZOOM_LEVELS[currentTextZoomIndex];
+
+            document.body.style.zoom = (pct / 100);
+            document.documentElement.style.fontSize = pct + '%';
+
+            const lbl = document.getElementById('textSizeLabel');
+            if (lbl) lbl.innerText = pct + '%';
+
+            try {
+                localStorage.setItem('inatews_text_zoom_idx', currentTextZoomIndex);
+            } catch(e) {}
+
+            setTimeout(() => {
+                if (typeof mapInstance !== 'undefined' && mapInstance) mapInstance.invalidateSize();
+            }, 200);
+
+            if (showToastMsg) {
+                showToast(currentAppLang === 'en' ? `Text Size: ${pct}%` : `Ukuran Teks: ${pct}%`, 'info');
+            }
+        }
+
+        function adjustTextSize(dir) {
+            applyTextZoom(currentTextZoomIndex + dir, true);
+        }
+
+        function resetTextSize() {
+            applyTextZoom(3, true); // Index 3 is 100%
+        }
+
+        function initTextZoom() {
+            try {
+                const savedIdx = localStorage.getItem('inatews_text_zoom_idx');
+                if (savedIdx !== null) {
+                    const idx = parseInt(savedIdx, 10);
+                    if (!isNaN(idx) && idx >= 0 && idx < TEXT_ZOOM_LEVELS.length) {
+                        applyTextZoom(idx, false);
+                        return;
+                    }
+                }
+            } catch(e) {}
+            applyTextZoom(3, false);
+        }
+
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const colors = {
+                success: 'bg-emerald-950/95 border-emerald-500 text-emerald-200',
+                info: 'bg-slate-900/95 border-cyan-500 text-cyan-200',
+                error: 'bg-rose-950/95 border-rose-500 text-rose-200',
+                warning: 'bg-amber-950/95 border-amber-500 text-amber-200'
+            };
+            const el = document.createElement('div');
+            el.className = `p-3 rounded-xl border backdrop-blur-md shadow-2xl font-mono text-xs flex items-center gap-2 max-w-sm transition-all duration-300 pointer-events-auto ${colors[type] || colors.info}`;
+            const icon = type === 'success' ? 'fa-circle-check text-emerald-400' : (type === 'error' ? 'fa-circle-xmark text-rose-400' : 'fa-circle-info text-cyan-400');
+            el.innerHTML = `<i class="fa-solid ${icon}"></i><span>${msg}</span>`;
+            container.appendChild(el);
+            setTimeout(() => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(-10px)';
+                setTimeout(() => el.remove(), 300);
+            }, 3500);
+        }
+
+        // ==================== 2. APPLICATION STATE & GLOBALS ====================
         let currentTheme = 'dark';
         let mapInstance = null;
         let currentTileLayer = null;
@@ -1368,7 +1698,6 @@
         let currentSystemIdleSecondsCounter = 0;
         const maximumIdleLimitBeforeActivation = 300; 
 
-        // Variable Fitur Asisten Suara
         let isVoiceAssistantEnabled = true;
         let currentVoiceIndex = 0;
         let availableVoices = [];
@@ -1388,11 +1717,7 @@
             { name: "GEMPA CIANJUR SESAR CUGENANG (2022)", mag: 5.6, coords: [-6.84, 107.05], depth: 10, fault: "strike", desc: "Gempa kerak dangkal sesar aktif Cugenang yang memicu kerusakan struktural dan tanah longsor." }
         ];
 
-        // Sesar Aktif Utama Indonesia
-                // ==== NUSANTARA ACTIVE FAULT DATABASE (v4.5): 37 sesar & zona subduksi, warna per tipe ====
-        // Tipe & warna: Megathrust #dc2626 | Sesar Geser Mendatar #f59e0b | Sesar Naik #10b981 | Back-Arc Thrust #ec4899 | Sesar Mendatar Samudra #06b6d4
         var tectonicFaultsData = [
-            // --- Sumatera ---
             { name: "Zona Megathrust Mentawai-Sunda", type: "Megathrust", mmax: "M 8.9", slip: "40 - 70 mm/th", color: "#dc2626", path: [[6.5, 93.5], [3.0, 95.0], [0.0, 97.5], [-3.5, 100.0], [-6.5, 103.5], [-8.5, 108.0], [-10.0, 115.0], [-10.5, 122.0]], desc: "Antarmuka subduksi aktif di barat pulau Sumatera; sumber gempa Aceh 2004 (M9.1), Nias 2005 (M8.6), Bengkulu 2007 (M8.5), dan Padang 2009 (M7.6)." },
             { name: "Sesar Semangko (Great Sumatran Fault)", type: "Sesar Geser Mendatar", mmax: "M 7.7", slip: "10 - 25 mm/th", color: "#f59e0b", path: [[5.8, 95.3], [4.5, 96.2], [3.2, 97.5], [1.5, 99.1], [-0.5, 100.5], [-2.5, 102.3], [-4.8, 104.5], [-5.9, 105.7]], desc: "Sesar geser mengiri sepanjang ±1.900 km dari Aceh sampai Sunda; membatasi depresi Semangko dan bergerak sangat cepat." },
             { name: "Sesar Aceh (Segmen Samudra)", type: "Sesar Geser Mendatar", mmax: "M 7.0", slip: "5 - 15 mm/th", color: "#f59e0b", path: [[5.6, 95.2], [4.9, 95.9], [4.3, 96.4]], desc: "Segmen utara Sesar Semangko di sekitar Banda Aceh dan Pulau Weh." },
@@ -1400,43 +1725,36 @@
             { name: "Sesar Angkola (Sumatera Barat)", type: "Sesar Geser Mendatar", mmax: "M 7.0", slip: "5 - 12 mm/th", color: "#f59e0b", path: [[-0.6, 100.2], [-1.2, 101.0], [-1.8, 101.6]], desc: "Segmen selatan-tengah Sesar Semangko di sekitar Bonjol dan Angkola." },
             { name: "Sesar Toru (Sumatera Barat)", type: "Sesar Naik", mmax: "M 6.5", slip: "1 - 4 mm/th", color: "#10b981", path: [[-0.5, 100.8], [-1.0, 101.5], [-1.6, 102.2]], desc: "Sesar naik belakang busur di selatan Padang; berpotensi gempa dangkal dekat kota." },
             { name: "Sesar Mentawai (Segmen Simentawa)", type: "Megathrust", mmax: "M 8.5", slip: "40 - 60 mm/th", color: "#dc2626", path: [[-0.5, 98.5], [-2.0, 99.5], [-3.5, 100.5]], desc: "Segmen megathrust di lepas pantai Mentawai; pecah parsial pada rangkaian 2005-2010." },
-            // --- Jawa ---
-            { name: "Sesar Baribis (Jawa Barat)", type: "Sesar Naik", mmax: "M 7.0", slip: "0.5 - 3 mm/th", color: "#10b981", path: [[-6.2, 106.4], [-6.5, 107.2], [-6.8, 107.9], [-7.1, 108.6]], desc: "Sesar naik aktif di tepi utara zona vulkanik Jawa Barat; ancaman dekat Bogor-Jakarta (Ie 1.5)." },
+            { name: "Sesar Baribis (Jawa Barat)", type: "Sesar Naik", mmax: "M 7.0", slip: "0.5 - 3 mm/th", color: "#10b981", path: [[-6.2, 106.4], [-6.5, 107.2], [-6.8, 107.9], [-7.1, 108.6]], desc: "Sesar naik aktif di tepi utara zona vulkanik Jawa Barat; ancaman dekat Bogor-Jakarta." },
             { name: "Sesar Cimandiri (Jawa Barat)", type: "Sesar Naik", mmax: "M 7.0", slip: "0.5 - 2 mm/th", color: "#10b981", path: [[-6.9, 106.5], [-6.95, 106.9], [-7.0, 107.4]], desc: "Sesar naik-mendatar Sukabumi; zona sumber gempa Tasikmalaya 2009 di darat." },
             { name: "Sesar Lembang (Bandung)", type: "Sesar Naik", mmax: "M 6.8", slip: "0.5 - 2 mm/th", color: "#10b981", path: [[-6.81, 107.52], [-6.82, 107.65], [-6.83, 107.78]], desc: "Sesar naik 29 km di utara Bandung; bergerak aktif dan dekat permukiman padat." },
-            { name: "Sesar Opak (DI Yogyakarta)", type: "Sesar Naik", mmax: "M 6.8", slip: "0.5 - 2 mm/th", color: "#10b981", path: [[-7.85, 110.35], [-7.95, 110.42], [-8.05, 110.50]], desc: "Sesar kerak sumber gempa Yogyakarta 2006 (M6.3, 5.700 korban); melintasi Bantul-Prambanan." },
+            { name: "Sesar Opak (DI Yogyakarta)", type: "Sesar Naik", mmax: "M 6.8", slip: "0.5 - 2 mm/th", color: "#10b981", path: [[-7.85, 110.35], [-7.95, 110.42], [-8.05, 110.50]], desc: "Sesar kerak sumber gempa Yogyakarta 2006 (M6.3); melintasi Bantul-Prambanan." },
             { name: "Sesar Kendeng & Rembang", type: "Sesar Naik", mmax: "M 6.5", slip: "0.3 - 1 mm/th", color: "#10b981", path: [[-7.25, 111.0], [-7.30, 112.0], [-7.35, 113.0], [-7.2, 114.0]], desc: "Sistem sesar naik back-arc utara Jawa dari Purwodadi sampai Rembang." },
             { name: "Sesar Muria (Jawa Tengah)", type: "Sesar Geser Mendatar", mmax: "M 6.5", slip: "0.3 - 1 mm/th", color: "#f59e0b", path: [[-6.6, 110.7], [-6.8, 110.9], [-7.0, 111.1]], desc: "Sesar mendatar di sekitar Gunung Muria; memengaruhi wilayah Kudus dan sekitarnya." },
-            { name: "Sesar Pati-Lasem (Rembang)", type: "Sesar Geser Mendatar", mmax: "M 6.7", slip: "0.5 - 2 mm/th", color: "#f59e0b", path: [[-6.5, 111.0], [-6.6, 111.5], [-6.75, 112.1]], desc: "Sesar aktif pantura timur Jawa Tengah; sumber gempa kerak dangkal bersejarah di wilayah Rembang." },
+            { name: "Sesar Pati-Lasem (Rembang)", type: "Sesar Geser Mendatar", mmax: "M 6.7", slip: "0.5 - 2 mm/th", color: "#f59e0b", path: [[-6.5, 111.0], [-6.6, 111.5], [-6.75, 112.1]], desc: "Sesar aktif pantura timur Jawa Tengah; sumber gempa kerak dangkal di Rembang." },
             { name: "Sesar Semarang-Kaligarang", type: "Sesar Geser Mendatar", mmax: "M 6.0", slip: "0.3 - 1 mm/th", color: "#f59e0b", path: [[-6.95, 110.35], [-7.05, 110.42], [-7.15, 110.50]], desc: "Sesar kerak yang membelah kota Semarang di sepanjang lembah Kaligarang." },
-            { name: "Sesar Pasuruan (Jawa Timur)", type: "Sesar Naik", mmax: "M 6.8", slip: "0.5 - 2 mm/th", color: "#10b981", path: [[-7.55, 112.8], [-7.65, 113.0], [-7.75, 113.2]], desc: "Sesar naik antara Malang dan Pasuruan; terkait gempa kerak Jawa Timur 2015." },
-            { name: "Sesar Probolinggo (Jawa Timur)", type: "Sesar Naik", mmax: "M 6.8", slip: "0.5 - 2 mm/th", color: "#10b981", path: [[-7.6, 113.1], [-7.7, 113.25], [-7.8, 113.4]], desc: "Sesar naik di selatan Probolinggo, berlanjut ke lereng bromo-Tengger." },
-            // --- Bali & Nusa Tenggara ---
-            { name: "Flores Back-Arc Thrust", type: "Back-Arc Thrust", mmax: "M 7.8", slip: "5 - 15 mm/th", color: "#ec4899", path: [[-8.0, 116.0], [-8.1, 119.0], [-8.2, 122.5], [-8.0, 125.0]], desc: "Sesar naik belakang busur di laut utara Bali-Lombok-Sumbawa-Flores; sumber gempa Lombok 2018 (M6.9) dan Maumere 1992 (M7.8)." },
-            { name: "Zona Sesar Timor (Timor & Semau)", type: "Sesar Naik", mmax: "M 7.5", slip: "3 - 7 mm/th", color: "#10b981", path: [[-9.0, 123.5], [-9.4, 124.2], [-9.8, 124.8], [-10.2, 125.3]], desc: "Sistem sesar naik kompleks akibat tumbukan benua Australia-Banda di Pulau Timor; sumber gempa Kupang 2023." },
-            { name: "Zona Sesar Sumbawa Selatan", type: "Sesar Naik", mmax: "M 6.5", slip: "1 - 3 mm/th", color: "#10b981", path: [[-8.9, 116.5], [-9.0, 117.5], [-9.1, 118.5]], desc: "Sesar naik kerak di selatan Sumbawa, zona sumber gempa bumi dangkal Bima." },
-            // --- Kalimantan ---
-            // (Kalimantan: intra-lempeng stabil, tanpa sesar aktif mayor)
-            // --- Sulawesi ---
-            { name: "Sesar Palu-Koro (Sulawesi Tengah)", type: "Sesar Geser Mendatar", mmax: "M 7.7", slip: "15 - 40 mm/th", color: "#f59e0b", path: [[1.2, 120.8], [0.2, 120.2], [-0.9, 119.9], [-2.2, 120.5], [-3.5, 121.2]], desc: "Sesar geser tercepat di Indonesia; sumber gempa Palu 2018 (M7.5) + likuifaksi + tsunami, >4.000 korban." },
+            { name: "Sesar Pasuruan (Jawa Timur)", type: "Sesar Naik", mmax: "M 6.8", slip: "0.5 - 2 mm/th", color: "#10b981", path: [[-7.55, 112.8], [-7.65, 113.0], [-7.75, 113.2]], desc: "Sesar naik antara Malang dan Pasuruan; terkait gempa kerak Jawa Timur." },
+            { name: "Sesar Probolinggo (Jawa Timur)", type: "Sesar Naik", mmax: "M 6.8", slip: "0.5 - 2 mm/th", color: "#10b981", path: [[-7.6, 113.1], [-7.7, 113.25], [-7.8, 113.4]], desc: "Sesar naik di selatan Probolinggo, berlanjut ke lereng Bromo-Tengger." },
+            { name: "Flores Back-Arc Thrust", type: "Back-Arc Thrust", mmax: "M 7.8", slip: "5 - 15 mm/th", color: "#ec4899", path: [[-8.0, 116.0], [-8.1, 119.0], [-8.2, 122.5], [-8.0, 125.0]], desc: "Sesar naik belakang busur di laut utara Bali-Lombok-Sumbawa-Flores; sumber gempa Lombok 2018 (M6.9)." },
+            { name: "Zona Sesar Timor (Timor & Semau)", type: "Sesar Naik", mmax: "M 7.5", slip: "3 - 7 mm/th", color: "#10b981", path: [[-9.0, 123.5], [-9.4, 124.2], [-9.8, 124.8], [-10.2, 125.3]], desc: "Sistem sesar naik kompleks akibat tumbukan benua Australia-Banda di Pulau Timor." },
+            { name: "Zona Sesar Sumbawa Selatan", type: "Sesar Naik", mmax: "M 6.5", slip: "1 - 3 mm/th", color: "#10b981", path: [[-8.9, 116.5], [-9.0, 117.5], [-9.1, 118.5]], desc: "Sesar naik kerak di selatan Sumbawa, zona sumber gempa dangkal Bima." },
+            { name: "Sesar Palu-Koro (Sulawesi Tengah)", type: "Sesar Geser Mendatar", mmax: "M 7.7", slip: "15 - 40 mm/th", color: "#f59e0b", path: [[1.2, 120.8], [0.2, 120.2], [-0.9, 119.9], [-2.2, 120.5], [-3.5, 121.2]], desc: "Sesar geser tercepat di Indonesia; sumber gempa Palu 2018 (M7.5) + likuifaksi + tsunami." },
             { name: "Sesar Mamuju (Sulawesi Barat)", type: "Sesar Geser Mendatar", mmax: "M 7.2", slip: "2 - 8 mm/th", color: "#f59e0b", path: [[-2.3, 118.9], [-2.7, 119.0], [-3.1, 119.3]], desc: "Cabang barat sistem Palu-Koro; sumber gempa Majene-Mamuju 2021 (M6.2)." },
             { name: "Sesar Poso (Sulawesi Tengah)", type: "Sesar Geser Mendatar", mmax: "M 7.0", slip: "5 - 15 mm/th", color: "#f59e0b", path: [[-1.6, 120.4], [-2.1, 120.8], [-2.6, 121.3]], desc: "Sesar mendatar kawan Palu-Koro di sekitar lembah Poso." },
             { name: "Sesar Matano & Lawanopo", type: "Sesar Geser Mendatar", mmax: "M 7.0", slip: "5 - 15 mm/th", color: "#f59e0b", path: [[-2.3, 121.2], [-2.6, 122.0], [-3.2, 122.8], [-4.0, 123.5]], desc: "Sistem sesar mendatar di lengan tenggara Sulawesi menuju Laut Banda." },
             { name: "Sesar Walanae (Sulawesi Selatan)", type: "Sesar Geser Mendatar", mmax: "M 6.8", slip: "1 - 5 mm/th", color: "#f59e0b", path: [[-4.0, 119.7], [-4.4, 120.3], [-4.9, 120.6]], desc: "Sesar mendatar lembah Walanae di sekitar Bone dan Sengkang." },
             { name: "Sesar Balantak (Sulawesi Timur)", type: "Sesar Naik", mmax: "M 6.5", slip: "1 - 3 mm/th", color: "#10b981", path: [[-0.8, 123.6], [-1.1, 123.3], [-1.4, 123.0]], desc: "Sesar naik di sekitar Teluk Tolo, lengan timur Sulawesi." },
             { name: "Zona Subduksi Sangihe (Sulut-Malut)", type: "Megathrust", mmax: "M 8.0", slip: "20 - 50 mm/th", color: "#dc2626", path: [[3.5, 125.0], [1.5, 125.5], [-0.5, 125.0], [-2.0, 123.5]], desc: "Zona subduksi laut Sulawesi utara; sumber gempa dan tsunami Sangihe-Maluku Utara." },
-            // --- Maluku ---
             { name: "Sesar Halmahera", type: "Sesar Geser Mendatar", mmax: "M 7.5", slip: "10 - 30 mm/th", color: "#f59e0b", path: [[0.5, 127.5], [0.2, 128.2], [-0.2, 128.8], [-0.6, 129.3]], desc: "Sesar geser zona kolisi Halmahera; sangat aktif di sekitar Maluku Utara." },
             { name: "Sesar Seram (Maluku)", type: "Sesar Naik", mmax: "M 7.0", slip: "5 - 15 mm/th", color: "#10b981", path: [[-3.2, 128.2], [-3.1, 129.2], [-3.3, 130.3]], desc: "Sesar naik memanjang Pulau Seram; sumber gempa Ambon 2019 (M6.5)." },
             { name: "Zona Megathrust Banda", type: "Megathrust", mmax: "M 8.5", slip: "30 - 70 mm/th", color: "#dc2626", path: [[-4.0, 129.5], [-5.5, 130.5], [-7.0, 131.0], [-8.0, 130.5]], desc: "Zona tunjaman laut Banda; sumber gempa besar 1938 (M8.5) dengan tsunami historis." },
-            // --- Papua ---
             { name: "Sesar Tarera-Aiduna (Papua)", type: "Sesar Geser Mendatar", mmax: "M 7.5", slip: "10 - 25 mm/th", color: "#f59e0b", path: [[-3.8, 134.0], [-4.0, 136.0], [-4.3, 138.5]], desc: "Sesar geser besar di leher kepala burung Papua; salah satu paling aktif di Indonesia timur." },
             { name: "Sesar Sorong (Papua Barat Daya)", type: "Sesar Geser Mendatar", mmax: "M 7.0", slip: "5 - 15 mm/th", color: "#f59e0b", path: [[-0.8, 130.5], [-0.9, 132.0], [-1.2, 134.5]], desc: "Sesar mendatar besar memisahkan blok kepala burung dari batang Papua." },
             { name: "Sesar Yapen (Papua)", type: "Sesar Geser Mendatar", mmax: "M 7.0", slip: "5 - 15 mm/th", color: "#f59e0b", path: [[-1.7, 136.5], [-1.9, 137.5], [-2.1, 138.3]], desc: "Sesar mendatar di sepanjang Pulau Yapen, kelanjutan sistem Sorong." },
             { name: "Sesar Mamberamo (Papua)", type: "Sesar Naik", mmax: "M 7.6", slip: "5 - 12 mm/th", color: "#10b981", path: [[-2.0, 138.0], [-2.5, 139.0], [-3.0, 140.0]], desc: "Sistem sesar naik-mendatar dataran tinggi Mamberamo menuju Pegunungan Jayawijaya." },
             { name: "Sesar Ransiki (Papua Barat)", type: "Sesar Naik", mmax: "M 7.7", slip: "10 - 40 mm/th", color: "#10b981", path: [[-1.0, 134.0], [-1.4, 134.4], [-1.8, 134.8]], desc: "Zona tunjaman/sesar naik selatan kepala burung; sumber gempa Manokwari 2009 (M7.7)." },
             { name: "Sesar Wamena (Baliem Valley)", type: "Sesar Geser Mendatar", mmax: "M 7.0", slip: "5 - 12 mm/th", color: "#f59e0b", path: [[-3.8, 138.2], [-4.0, 138.9], [-4.2, 139.6]], desc: "Sesar mendatar lembah Baliem; memotong Pegunungan Jayawijaya di pedalaman Papua." },
-            { name: "Sesar Mendatar Samudra Hindia (Intra-lempeng)", type: "Sesar Mendatar Samudra", mmax: "M 8.6", slip: "—", color: "#06b6d4", path: [[2.0, 90.5], [0.5, 92.5], [-1.0, 94.0]], desc: "Sesar mendatar intra-slab samudra; sumber gempa terbesar jenis strike-slip dunia (M8.6, 11 April 2012)." }
+            { name: "Sesar Mendatar Samudra Hindia (Intra-lempeng)", type: "Sesar Mendatar Samudra", mmax: "M 8.6", slip: "—", color: "#06b6d4", path: [[2.0, 90.5], [0.5, 92.5], [-1.0, 94.0]], desc: "Sesar mendatar intra-slab samudra; sumber gempa terbesar jenis strike-slip dunia (M8.6, 2012)." }
         ];
         var FAULT_TYPE_LEGEND = [
             { type: "Megathrust", color: "#dc2626" },
@@ -1446,7 +1764,6 @@
             { type: "Sesar Mendatar Samudra", color: "#06b6d4" }
         ];
 
-        // Stasiun Sensor InaTEWS
         const inatewsSensorsData = [
             { code: "TID-01", name: "Tide Gauge Sabang", coords: [5.89, 95.32], type: "Tide Gauge" },
             { code: "TID-02", name: "Tide Gauge Padang", coords: [-0.96, 100.35], type: "Tide Gauge" },
@@ -1466,7 +1783,6 @@
         let selectedActiveCoordinates = [-6.45, 104.72];
         const windyIframeUrl = "https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=°C&metricWind=km/h&zoom=4&overlay=waves&product=ecmwf&level=surface&lat=-2.5&lon=118.0";
 
-        // FIX v4.5: tile OSM langsung (403 Access Blocked) & CARTO (API key required) diganti Esri resmi — tanpa API key, stabil.
         var baseMapProviders = {
             satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
             hybrid: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -1477,7 +1793,6 @@
         var FALLBACK_TILE_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}';
         var hybridLabelsLayer = null;
 
-        // ================= KATA-KATA BIJAK & MOTIVASI SCREENSAVER =================
         const wisdomQuotes = [
             { text: "Kesiapsiagaan hari ini adalah penyelamat kehidupan esok hari. Bersahabat dengan alam, tanggap terhadap bencana.", author: "Prinsip Mitigasi Bencana" },
             { text: "Bukan kuatnya guncangan yang menentukan masa depan kita, melainkan ketenangan, ilmu, dan kecepatan kita bertindak.", author: "Ketangguhan Mental & Sains" },
@@ -1506,9 +1821,12 @@
             const loader = document.getElementById('systemLoadingScreen');
             if (loader) {
                 loader.classList.add('opacity-0');
+                if (bootEarthObj && bootEarthObj.setSpeed) bootEarthObj.setSpeed(0.012);
                 setTimeout(() => {
                     loader.classList.add('hidden');
                     loader.style.display = 'none';
+                    if (bootEarthRAF) { cancelAnimationFrame(bootEarthRAF); bootEarthRAF = 0; }
+                    if (mapInstance) mapInstance.invalidateSize();
                 }, 500);
             }
         }
@@ -1552,26 +1870,27 @@
                 }
             }, 1000);
 
-            const resetIdle = () => {
+            const resetIdleHandler = () => {
                 currentSystemIdleSecondsCounter = 0;
                 if(isMonsoonScreensaverModeActive) turnOffScreensaverMode();
             };
-            ["mousemove", "keypress", "mousedown", "touchstart", "scroll"].forEach(evt => window.addEventListener(evt, resetIdle));
+            ["mousemove", "keypress", "mousedown", "touchstart", "scroll"].forEach(evt => window.addEventListener(evt, resetIdleHandler));
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             try { initClockEngine(); } catch(e) { console.warn("Clock engine error:", e); }
+            try { initLoadingRealisticEarth(); } catch(e) { console.warn("Loading Earth error:", e); }
+            try { initBackgroundRealisticEarth(); } catch(e) { console.warn("Bg Earth error:", e); }
             try { initMainApplicationGis(); } catch(e) { console.warn("GIS init error:", e); }
-            setTimeout(dismissLoadingScreen, 1000);
+            try { initAppLanguage(); } catch(e) {}
+            try { initTextZoom(); } catch(e) {}
+            setTimeout(dismissLoadingScreen, 2200);
         });
 
         window.addEventListener('load', () => {
-            setTimeout(dismissLoadingScreen, 400);
+            setTimeout(dismissLoadingScreen, 800);
         });
 
-        setTimeout(dismissLoadingScreen, 2000);
-
-        // ================= TTS & SPEECH =================
         function toggleVoiceAssistant() {
             isVoiceAssistantEnabled = !isVoiceAssistantEnabled;
             const icon = document.getElementById('iconVoiceToggle');
@@ -1627,7 +1946,6 @@
             };
         }
 
-        // ================= AUDIO SIREN ENGINE =================
         function startTsunamiSiren() {
             if (isSirenPlaying) return;
             try {
@@ -1673,6 +1991,8 @@
             isMonsoonScreensaverModeActive = true;
             const element = document.getElementById("monsoonTechScreensaver");
             element.classList.remove("hidden");
+            if (!ssEarthInit) initScreensaverRealisticEarth();
+            if (ssEarthObj && ssEarthObj.loop) ssEarthObj.loop();
             setTimeout(() => { element.classList.remove("opacity-0"); element.classList.add("opacity-100"); }, 40);
         }
 
@@ -1681,12 +2001,12 @@
             const element = document.getElementById("monsoonTechScreensaver");
             element.classList.remove("opacity-100");
             element.classList.add("opacity-0");
+            if (ssEarthRAF) { cancelAnimationFrame(ssEarthRAF); ssEarthRAF = 0; }
             setTimeout(() => { element.classList.add("hidden"); currentSystemIdleSecondsCounter = 0; }, 600);
         }
 
         function resetIdle() { turnOffScreensaverMode(); }
 
-        // ================= GIS MAP ENGINE (LEAFLET) =================
         function initMainApplicationGis() {
             if (mapInstance) {
                 try { mapInstance.remove(); } catch(e){}
@@ -1696,7 +2016,6 @@
             mapInstance = L.map('map', { center: selectedActiveCoordinates, zoom: 5, minZoom: 3, maxZoom: 15, zoomControl: false });
             L.control.zoom({ position: 'bottomright' }).addTo(mapInstance);
             
-            // Custom Leaflet Panes
             mapInstance.createPane('faultPane');
             mapInstance.getPane('faultPane').style.zIndex = 380;
 
@@ -1723,16 +2042,15 @@
             if (currentTileLayer) mapInstance.removeLayer(currentTileLayer);
             if (hybridLabelsLayer) { mapInstance.removeLayer(hybridLabelsLayer); hybridLabelsLayer = null; }
             const url = baseMapProviders[style] || baseMapProviders.satellite;
-            currentTileLayer = L.tileLayer(url, { maxZoom: 20, attribution: 'InaTEWS &copy; BMKG • Tiles &copy; Esri, Maxar, Earthstar Geographics | &copy; OpenStreetMap contributors' }).addTo(mapInstance);
+            currentTileLayer = L.tileLayer(url, { maxZoom: 20, attribution: 'InaTEWS &copy; BMKG • Tiles &copy; Esri, Maxar | OpenStreetMap' }).addTo(mapInstance);
             if (style === 'hybrid') {
                 hybridLabelsLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 20 }).addTo(mapInstance);
             }
-            // Fallback otomatis jika provider utama gagal berulang
             let tileErrCount = 0;
             currentTileLayer.on('tileerror', function () {
                 tileErrCount++;
                 if (tileErrCount === 10) {
-                    console.warn('Tile basemap gagal — beralih ke fallback Esri Topo.');
+                    console.warn('Tile basemap fallback to Esri Topo.');
                     if (currentTileLayer) mapInstance.removeLayer(currentTileLayer);
                     currentTileLayer = L.tileLayer(FALLBACK_TILE_URL, { maxZoom: 18 }).addTo(mapInstance);
                 }
@@ -1779,7 +2097,6 @@
                 faultLinesLayerGroup.addLayer(polyline);
             });
             faultLinesLayerGroup.addTo(mapInstance);
-            // Legenda peta (sekali render)
             const legendBox = document.getElementById('mapFaultLegendItems');
             if (legendBox && !legendBox.dataset.rendered) {
                 legendBox.innerHTML = FAULT_TYPE_LEGEND.map(l =>
@@ -1819,12 +2136,12 @@
                             <b class="text-[10.5px] text-slate-100 block truncate">⚡ ${f.name}</b>
                             <span class="text-[9px] color-sub">${f.mmax} • ${f.slip}</span>
                         </div>
-                        <button onclick="focusFaultByName('${f.name.replace(/'/g, "\\'")}'); closeFaultsModal();" class="px-2 py-1 rounded bg-rose-700 hover:bg-rose-600 text-white text-[9px] font-bold shrink-0 cursor-pointer">LIHAT</button>
+                        <button onclick="focusFaultByName('${f.name.replace(/'/g, "\\\\'")}'); closeFaultsModal();" class="px-2 py-1 rounded bg-rose-700 hover:bg-rose-600 text-white text-[9px] font-bold shrink-0 cursor-pointer">LIHAT</button>
                     </div>`;
                 });
                 html += '</div>';
             });
-            list.innerHTML = html + `<div class="text-[9px] color-sub pt-2 border-t border-slate-700">Total ${tectonicFaultsData.length} sesar & zona subduksi aktif nusantara (Peta Bahaya Gempa PuSGeN & PusGeol). Kalimantan relatif stabil: intra-lempeng tanpa sesar aktif mayor.</div>`;
+            list.innerHTML = html + `<div class="text-[9px] color-sub pt-2 border-t border-slate-700">Total ${tectonicFaultsData.length} sesar & zona subduksi aktif nusantara (PuSGeN 2024 & PusGeol).</div>`;
             modal.classList.remove('hidden');
         }
 
@@ -1971,7 +2288,6 @@
             });
         }
 
-        // ================= FETCH BMKG JSON DATA =================
         function startLiveCountdown() {
             setInterval(() => {
                 refreshCountdown--;
@@ -2259,7 +2575,6 @@
             }
         }
 
-        // ================= KALKULASI GEOTEKNIK & EVALUASI ALERT =================
         function jalankanKalkulasiDinamis() {
             const magnitude = parseFloat(document.getElementById("slider-mag").value) / 10;
             const depth = parseInt(document.getElementById("slider-depth").value);
@@ -2345,7 +2660,6 @@
             }
         }
 
-        // ================= UNIVERSAL SEARCH =================
         function executeUniversalSearch(inputId, suggestionId) {
             const val = document.getElementById(inputId).value.trim().toUpperCase();
             if (!val) return;
@@ -2463,21 +2777,9 @@
                 setTimeout(() => mapInstance.invalidateSize(true), 250);
             }
         });
-        document.addEventListener('webkitfullscreenchange', () => {
-            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-                document.body.classList.remove('mode-map-fullscreen');
-            } else {
-                document.body.classList.add('mode-map-fullscreen');
-            }
-            handleFullscreenChange();
-            if (mapInstance) {
-                setTimeout(() => mapInstance.invalidateSize(true), 250);
-            }
-        });
 
         let currentActiveWindyLayer = 'waves';
 
-        // v4.5: Windy mengikuti pusat & zoom peta GIS aktif
         function buildWindyUrl(overlay) {
             let lat = -2.5, lon = 118.0, zoom = 4;
             try {
@@ -2498,7 +2800,6 @@
                 iframe.src = buildWindyUrl(overlay);
             }
             
-            // Update button states on Top Toolbar
             const overlayKeys = ['waves', 'wind', 'radar', 'satellite', 'rain', 'temp', 'clouds', 'gust'];
             overlayKeys.forEach(k => {
                 const btnToolbar = document.getElementById(`tbWindyBtn-${k}`);
@@ -2541,13 +2842,11 @@
                 btnMap.className = "px-2.5 py-1 rounded color-sub hover:color-main cursor-pointer transition-all";
                 if (mapTitle) mapTitle.innerHTML = '<i class="fa-solid fa-water animate-pulse text-cyan-400"></i> Radar Laut &amp; Cuaca Maritim';
                 
-                // v4.5: segarkan Windy mengikuti pusat peta GIS terakhir
                 setTimeout(() => {
                     const wIframe = document.getElementById('dashboardWeatherIframe');
                     if (wIframe) wIframe.src = buildWindyUrl(currentActiveWindyLayer);
                 }, 200);
 
-                // Tampilkan switch lapisan radar di toolbar utama
                 if (gisBasemapGroup) gisBasemapGroup.classList.add('hidden');
                 if (btnRuler) btnRuler.classList.add('hidden');
                 if (windyToolbarGroup) {
@@ -2555,7 +2854,6 @@
                     windyToolbarGroup.classList.add('flex');
                 }
 
-                // Pastikan front holder tidak menghalangi event klik dan back holder aktif
                 setTimeout(() => {
                     if (frontHolder) {
                         frontHolder.style.pointerEvents = 'none';
@@ -2573,7 +2871,6 @@
                 btnWeather.className = "px-2.5 py-1 rounded color-sub hover:color-main cursor-pointer transition-all";
                 if (mapTitle) mapTitle.innerHTML = '<i class="fa-solid fa-earth-asia animate-pulse text-amber-400"></i> Peta Episentrum Seismik';
                 
-                // Kembalikan tombol basemap GIS
                 if (windyToolbarGroup) {
                     windyToolbarGroup.classList.add('hidden');
                     windyToolbarGroup.classList.remove('flex');
@@ -2616,7 +2913,6 @@
             if (!el) return;
             const isHidden = el.classList.contains('hidden');
             
-            // Tutup widget terapung lainnya agar tidak bertumpuk
             ['bmkgLiveWidget', 'sejarahGempaWidget', 'monsoonFloatingInterface'].forEach(wId => {
                 const w = document.getElementById(wId);
                 if (w && wId !== id) w.classList.add('hidden');
@@ -2679,7 +2975,7 @@
         function triggerChatShortcut(type) {
             const inp = document.getElementById('chatInput');
             if (type === 'creator') inp.value = "Tampilkan Profil & Data Programmer Pengembang Sistem";
-            else if (type === 'my_aplikasi') inp.value = "Buka Direktori 38 Aplikasi Ekosistem Portofolio Lengkap";
+            else if (type === 'my_aplikasi') inp.value = "Buka Direktori Portofolio Aplikasi Ekosistem Lengkap";
             else if (type === 'algoritma_analysis') inp.value = "Jalankan Algoritma Analysis multi-metode GMPE & PSHA seismik";
             else if (type === 'analisa_gempa') inp.value = "Analisis kekuatan gempa terkini, estimasi PGA, dan risiko likuifaksi";
             else if (type === 'tsunami_eta') inp.value = "Bagaimana simulasi kecepatan gelombang tsunami dan estimasi waktu tiba di pantai?";
@@ -2707,7 +3003,6 @@
             let speechText = "";
             const query = val.toLowerCase();
 
-                        // 0. ALGORITMA ANALYSIS MULTI-METODE (GMPE NGA & PSHA SEISMIK)
             if (query.includes('algoritma') || query.includes('algorithm') || query.includes('gmpe') || query.includes('boore') || query.includes('campbell') || query.includes('psha') || query.includes('fukushima') || (query.includes('analisis') && query.includes('ai'))) {
                 const mag = parseFloat(document.getElementById('slider-mag').value) / 10;
                 const depth = parseInt(document.getElementById('slider-depth').value);
@@ -2716,30 +3011,24 @@
                 
                 const Rrup = Math.sqrt(depth * depth + 50 * 50);
                 
-                // 1. Boore-Atkinson 2008 (NGA-West2)
                 const BA_lnPGA = -1.219 + 0.41 * Math.log(mag) - 1.0 * Math.log(Rrup + 0.033 * Math.pow(10, 0.41 * mag)) + 0.0712 * (mag - 6);
                 const BA_pga_g = Math.exp(BA_lnPGA);
 
-                // 2. Campbell-Bozorgnia 2014
                 const CB_lnPGA = -3.274 + 1.1 * (mag - 6) - 0.5 * Math.log(Rrup + 0.1 * Math.pow(10, 0.5 * mag)) - 0.0035 * Rrup;
                 const CB_pga_g = Math.exp(CB_lnPGA);
 
-                // 3. PSHA - Probabilistic Seismic Hazard Assessment (475 Tahun)
                 const poe = 0.10;
                 const returnPeriod = -50 / Math.log(1 - poe);
                 const psha_pga = Math.pow(10, -1.5 + 0.5 * mag - 0.3 * Math.log10(Rrup));
                 const psha_level = psha_pga > 0.4 ? 'TINGGI' : psha_pga > 0.2 ? 'SEDANG' : 'RENDAH';
 
-                // 4. Fukushima-Tanaka (FGC-98)
                 const FT_pga = Math.pow(10, -1.0 + 0.5 * mag - 1.73 * Math.log10(Rrup + 0.33 * Math.pow(10, 0.5 * mag)));
 
-                // 5. Makroseismic Intensity (MMI) - Bakun & Wentworth
                 let mmi_calc = 1.17 * mag - 1.22 * Math.log10(Rrup) - 0.46;
                 mmi_calc = Math.max(1, Math.min(12, mmi_calc));
                 const mmi_rounded = Math.round(mmi_calc);
                 const mmi_desc = ['I Tidak Terasa','II Sangat Lemah','III Lemah','IV Ringan','V Sedang','VI Cukup','VII Kuat','VIII Merusak','IX Menghancurkan','X Ekstrem','XI Bencana','XII Total'];
 
-                // 6. Seismic Risk Matrix
                 const pga_max = Math.max(BA_pga_g, CB_pga_g, psha_pga, FT_pga);
                 const liq_risk = pga_max > 0.3 ? 'TINGGI' : pga_max > 0.15 ? 'SEDANG' : 'RENDAH';
                 const tsunami_risk = (faultType === 'thrust' && mag >= 7.0) ? 'TINGGI' : (faultType === 'thrust' && mag >= 6.5) ? 'SEDANG' : 'RENDAH';
@@ -2777,7 +3066,7 @@
                                 <span><i class="fa-solid fa-chart-line mr-1"></i>2. Campbell-Bozorgnia 2014</span>
                                 <b class="text-cyan-300">${CB_pga_g.toFixed(4)} g</b>
                             </div>
-                            <p class="text-slate-400 text-[10px] leading-snug">Koreksi nonlinear site response dan kedalaman cekungan sedimen (Z2.5 = 1.8 km).</p>
+                            <p class="text-slate-400 text-[10px] leading-snug">Koreksi nonlinear site response dan kedalaman cekungan sedimen.</p>
                         </div>
 
                         <div class="p-2 bg-slate-900/90 rounded-lg border border-emerald-500/30">
@@ -2787,41 +3076,18 @@
                             </div>
                             <p class="text-slate-400 text-[10px] leading-snug">Periode ulang ${returnPeriod.toFixed(0)} tahun (10% Probabilitas Terlampaui dalam 50 Tahun).</p>
                         </div>
-
-                        <div class="p-2 bg-slate-900/90 rounded-lg border border-rose-500/30">
-                            <div class="flex items-center justify-between text-rose-400 font-bold mb-0.5">
-                                <span><i class="fa-solid fa-tower-broadcast mr-1"></i>4. Fukushima-Tanaka (FGC-98)</span>
-                                <b class="text-rose-300">${FT_pga.toFixed(4)} g</b>
-                            </div>
-                            <p class="text-slate-400 text-[10px] leading-snug">Model atenuasi empiris disesuaikan karakteristik subduksi &amp; kerak dangkal Indonesia.</p>
-                        </div>
-
-                        <div class="p-2 bg-slate-900/90 rounded-lg border border-indigo-500/30">
-                            <div class="flex items-center justify-between text-indigo-400 font-bold mb-0.5">
-                                <span><i class="fa-solid fa-flask mr-1"></i>5. Makroseismik Intensitas (Bakun-Wentworth)</span>
-                                <b class="text-indigo-300">${mmi_rounded} MMI</b>
-                            </div>
-                            <p class="text-slate-400 text-[10px] leading-snug">Skala getaran: <b>${mmi_desc[mmi_rounded-1]}</b> | Radius persepsi dampak: ~${(Math.exp(0.8*mag-2)*10).toFixed(0)} km.</p>
-                        </div>
                     </div>
 
-                    <div class="p-2.5 bg-gradient-to-r from-slate-900 to-indigo-950 rounded-xl border border-indigo-500/50 text-[11px]">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-indigo-300 font-bold"><i class="fa-solid fa-shield-halved text-emerald-400 mr-1"></i>SKOR RISIKO KOMPOSIT:</span>
-                            <b class="${risk_color} font-tech font-black">${risk_score.toFixed(1)} / 100 (${risk_level})</b>
-                        </div>
-                        <div class="flex justify-between text-slate-400 text-[10px] border-t border-indigo-500/30 pt-1">
-                            <span>PGA Max: <b class="text-white">${pga_max.toFixed(4)}g</b></span>
-                            <span>Likuifaksi: <b class="text-white">${liq_risk}</b></span>
-                            <span>Tsunami: <b class="text-white">${tsunami_risk}</b></span>
-                        </div>
+                    <div class="p-2.5 bg-gradient-to-r from-slate-900 to-indigo-950 rounded-xl border border-indigo-500/50 text-[11px] flex justify-between items-center">
+                        <span class="text-indigo-300 font-bold"><i class="fa-solid fa-shield-halved text-emerald-400 mr-1"></i>SKOR RISIKO KOMPOSIT:</span>
+                        <b class="${risk_color} font-tech font-black">${risk_score.toFixed(1)} / 100 (${risk_level})</b>
                     </div>
                 </div>`;
                 speechText = `Analisis algoritma seismik multi metode selesai. Skor bahaya komposit ${risk_score.toFixed(1)} dari 100, level ${risk_level}.`;
             }
-            // 1. MY APLIKASI DIRECTORY (PRIORITY MATCH)
-            else if (query.includes('my aplikasi') || query.includes('portofolio') || query.includes('direktori') || query.includes('daftar aplikasi') || query.includes('aplikasi apa saja') || query.includes('semua aplikasi') || query.includes('38 aplikasi')) {
+            else if (query.includes('my aplikasi') || query.includes('portofolio') || query.includes('direktori') || query.includes('daftar aplikasi') || query.includes('aplikasi apa saja') || query.includes('semua aplikasi') || query.includes('site report')) {
                 const appsList = [
+                    { u: "https://adikds-byte.github.io/Seismic_Site_Report_Pro/", i: "fa-chart-area", n: "Seismic Site Report Pro", cat: "Seismic & SNI 1726 (Featured)" },
                     { u: "https://adikds.github.io/jarvis-ai/", i: "fa-robot", n: "JARVIS AI", cat: "AI & Automation" },
                     { u: "https://adikds.github.io/edu-market-pro/", i: "fa-graduation-cap", n: "EduMarket Pro", cat: "Education & Market" },
                     { u: "https://adikds.github.io/iptv-terminal/", i: "fa-tv", n: "IPTV Terminal", cat: "Media & Streaming" },
@@ -2864,9 +3130,10 @@
 
                 let appsHtml = '<div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-64 overflow-y-auto pr-1 chat-wiki-scroll">';
                 appsList.forEach((app, idx) => {
+                    const isFeat = app.n.includes("Seismic Site Report");
                     appsHtml += `
-                        <a href="${app.u}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 p-2 bg-slate-900 hover:bg-slate-800 border border-indigo-500/40 hover:border-indigo-400 rounded-xl transition-all shadow-sm group cursor-pointer">
-                            <div class="w-7 h-7 flex items-center justify-center bg-indigo-950 rounded-lg shrink-0 text-indigo-400 text-xs group-hover:scale-110 transition-transform">
+                        <a href="${app.u}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 p-2 ${isFeat ? 'bg-amber-950/40 border-amber-500' : 'bg-slate-900 border-indigo-500/40'} hover:bg-slate-800 border rounded-xl transition-all shadow-sm group cursor-pointer">
+                            <div class="w-7 h-7 flex items-center justify-center ${isFeat ? 'bg-amber-950 text-amber-300' : 'bg-indigo-950 text-indigo-400'} rounded-lg shrink-0 text-xs group-hover:scale-110 transition-transform">
                                 <i class="fa-solid ${app.i}"></i>
                             </div>
                             <div class="min-w-0 flex-1">
@@ -2884,19 +3151,18 @@
                     <div class="border-b border-indigo-500/40 pb-2 flex justify-between items-center">
                         <div>
                             <span class="text-[9px] px-2 py-0.5 bg-indigo-950 text-indigo-300 border border-indigo-500 rounded font-black uppercase">PORTFOLIO ECOSYSTEM</span>
-                            <h4 class="text-xs font-black font-tech text-indigo-300 tracking-wider mt-1">DIREKTORI 38 APLIKASI MOHAMAD HARTADI</h4>
+                            <h4 class="text-xs font-black font-tech text-indigo-300 tracking-wider mt-1">DIREKTORI PORTOFOLIO APLIKASI MOHAMAD HARTADI</h4>
                         </div>
-                        <span class="text-[10px] font-mono font-black text-indigo-400 bg-indigo-950/80 px-2 py-1 rounded border border-indigo-500/40">38 APPS</span>
+                        <span class="text-[10px] font-mono font-black text-amber-400 bg-amber-950/80 px-2 py-1 rounded border border-amber-500/40">39 APPS</span>
                     </div>
                     <p class="text-[10px] text-slate-400 font-sans leading-snug">
                         Klik pada kartu aplikasi di bawah ini untuk membukanya langsung di tab baru:
                     </p>
                     ${appsHtml}
                 </div>`;
-                speechText = "Menampilkan direktori lengkap tiga puluh delapan aplikasi portofolio milik Mohamad Hartadi.";
+                speechText = "Menampilkan direktori lengkap portofolio aplikasi milik Mohamad Hartadi, termasuk Seismic Site Report Pro.";
             }
-                        // 2. CREATOR DATA (MOHAMAD HARTADI)
-            else if (query.includes('creator') || query.includes('programmer') || query.includes('pembuat') || query.includes('pengembang') || query.includes('hartadi') || query.includes('adi') || query.includes('profil')) {
+            else if (query.includes('creator') || query.includes('programmer') || query.includes('pembuat') || query.includes('pengembang') || query.includes('hartadi') || query.includes('profil')) {
                 botReply = `
                 <div class="chat-glow-creator p-3.5 bg-slate-950 rounded-2xl space-y-3 font-mono text-xs chat-card-animated border-2 border-fuchsia-500/60 shadow-[0_0_25px_rgba(236,72,153,0.35)]">
                     <div class="flex items-center gap-3 border-b border-pink-500/40 pb-3">
@@ -2912,39 +3178,27 @@
                         </div>
                     </div>
 
-                    <!-- Kontak & Media Sosial Resmi (Sesuai Foto Unggahan) -->
                     <div class="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800 space-y-2 font-mono">
                         <a href="https://wa.me/6282231036047?text=Halo%20Mohamad%20Hartadi%20InaTEWS" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-800 transition-all group cursor-pointer border border-transparent hover:border-emerald-500/40">
-                            <div class="w-9 h-9 rounded-full bg-emerald-950/80 border border-emerald-500/60 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(16,185,129,0.3)] group-hover:scale-110 transition-transform">
-                                <i class="fa-brands fa-whatsapp text-emerald-400 text-lg"></i>
+                            <div class="w-8 h-8 rounded-full bg-emerald-950/80 border border-emerald-500/60 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(16,185,129,0.3)] group-hover:scale-110 transition-transform">
+                                <i class="fa-brands fa-whatsapp text-emerald-400 text-base"></i>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <span class="block text-[9px] text-slate-400 tracking-wider uppercase font-bold">KONTAK WHATSAPP RESMI</span>
+                                <span class="block text-[8px] text-slate-400 tracking-wider uppercase font-bold">KONTAK WHATSAPP RESMI</span>
                                 <span class="text-emerald-400 text-xs font-black tracking-wider group-hover:underline block">082231036047</span>
                             </div>
-                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-600 group-hover:text-emerald-400"></i>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-600 group-hover:text-emerald-400"></i>
                         </a>
 
-                        <a href="https://www.facebook.com/m.hartadi" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-800 transition-all group cursor-pointer border border-transparent hover:border-cyan-500/40">
-                            <div class="w-9 h-9 rounded-full bg-cyan-950/80 border border-cyan-500/60 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(6,182,212,0.3)] group-hover:scale-110 transition-transform">
-                                <i class="fa-brands fa-facebook text-cyan-400 text-lg"></i>
+                        <a href="https://adikds-byte.github.io/Seismic_Site_Report_Pro/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-800 transition-all group cursor-pointer border border-amber-500/40 bg-amber-950/20">
+                            <div class="w-8 h-8 rounded-full bg-amber-950/80 border border-amber-500/60 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(245,158,11,0.3)] group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-chart-area text-amber-400 text-base"></i>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <span class="block text-[9px] text-slate-400 tracking-wider uppercase font-bold">PROFIL FACEBOOK</span>
-                                <span class="text-cyan-400 text-xs font-black tracking-wider group-hover:underline block truncate">facebook.com/m.hartadi</span>
+                                <span class="block text-[8px] text-slate-400 tracking-wider uppercase font-bold">SEISMIC SITE REPORT PRO</span>
+                                <span class="text-amber-300 text-xs font-black tracking-wider group-hover:underline block">Kalkulator Gempa SNI 1726</span>
                             </div>
-                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-600 group-hover:text-cyan-400"></i>
-                        </a>
-
-                        <a href="https://newbieonline7.blogspot.com/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-800 transition-all group cursor-pointer border border-transparent hover:border-pink-500/40">
-                            <div class="w-9 h-9 rounded-full bg-pink-950/80 border border-pink-500/60 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(236,72,153,0.3)] group-hover:scale-110 transition-transform">
-                                <i class="fa-solid fa-globe text-pink-400 text-lg"></i>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <span class="block text-[9px] text-slate-400 tracking-wider uppercase font-bold">PORTAL BLOG RESMI</span>
-                                <span class="text-pink-400 text-xs font-black tracking-wider group-hover:underline block truncate">newbieonline7.blogspot.com</span>
-                            </div>
-                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-600 group-hover:text-pink-400"></i>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-600 group-hover:text-amber-400"></i>
                         </a>
                     </div>
 
@@ -2952,9 +3206,8 @@
                         <i class="fa-solid fa-id-card mr-1"></i> BUKA DETAIL PROFIL KREATOR
                     </button>
                 </div>`;
-                speechText = "Menampilkan profil resmi pengembang sistem Mohamad Hartadi beserta kontak WhatsApp, profil Facebook, dan blog resmi.";
+                speechText = "Menampilkan profil resmi pengembang sistem Mohamad Hartadi.";
             }
-            // 3. ANALISA SEISMIK & GEOTEKNIK (PGA / LIKUIFAKSI)
             else if (query.includes('analisa') || query.includes('seismik') || query.includes('pga') || query.includes('mmi') || query.includes('likuifaksi')) {
                 const mag = (parseFloat(document.getElementById('slider-mag').value) / 10).toFixed(1);
                 const depth = document.getElementById('slider-depth').value;
@@ -2973,13 +3226,9 @@
                         <div>● <b>Skala Intensitas MMI:</b> <span class="text-amber-400 font-bold">${mmi}</span></div>
                         <div>● <b>Potensi Bahaya Likuifaksi:</b> <span class="text-rose-400 font-bold">${liq}</span></div>
                     </div>
-                    <p class="text-[10px] text-slate-400 leading-snug pt-1 border-t border-slate-800">
-                        Perhitungan PGA menggunakan model atenuasi atenuatif dan faktor amplifikasi tanah situs SNI 1726.
-                    </p>
                 </div>`;
                 speechText = `Analisis seismik: Magnitudo M ${mag}, PGA ${pga}, intensitas ${mmi}, potensi likuifaksi ${liq}.`;
             }
-            // 4. SIMULASI TSUNAMI & WAKTU TIBA (ETA)
             else if (query.includes('tsunami') || query.includes('eta') || query.includes('gelombang') || query.includes('kecepatan')) {
                 botReply = `
                 <div class="chat-glow-tsunami p-3 bg-slate-950 rounded-xl space-y-2 font-mono text-xs chat-card-animated">
@@ -2991,13 +3240,9 @@
                         <div>● Di Laut Dalam (h = 4.000 m): <b class="text-emerald-400">v ≈ 713 km/jam (200 m/s)</b></div>
                         <div>● Di Laut Dangkal (h = 50 m): <b class="text-amber-400">v ≈ 79 km/jam (22 m/s)</b></div>
                     </div>
-                    <p class="text-[10px] text-slate-400 leading-snug">
-                        Saat gelombang memasuki perairan dangkal pantai, kecepatan berkurang drastis namun tinggi gelombang mengalami amplifikasi (*shoaling effect*) hingga berkali lipat.
-                    </p>
                 </div>`;
                 speechText = "Kecepatan gelombang tsunami di laut dalam mencapai 700 kilometer per jam dan melambat saat mendekati pesisir.";
             }
-            // 5. MITIGASI 20-20-20
             else if (query.includes('mitigasi') || query.includes('20') || query.includes('evakuasi') || query.includes('protokol')) {
                 botReply = `
                 <div class="chat-glow-seismo p-3 bg-slate-950 rounded-xl space-y-2 font-mono text-xs chat-card-animated">
@@ -3012,14 +3257,13 @@
                             <b class="text-amber-400">2. WAKTU EVAKUASI 20 MENIT:</b> Anda memiliki waktu emas maksimal 20 menit untuk menjauhi pantai.
                         </div>
                         <div class="p-1.5 bg-slate-900 rounded border border-slate-800">
-                            <b class="text-rose-400">3. KETINGGIAN 20 METER:</b> Evakuasi ke bukit atau gedung evakuasi vertikal dengan ketinggian minimal 20 meter.
+                            <b class="text-rose-400">3. KETINGGIAN 20 METER:</b> Evakuasi ke tempat dengan ketinggian minimal 20 meter.
                         </div>
                     </div>
                 </div>`;
-                speechText = "Protokol 20 20 20: jika gempa terasa 20 detik, evakuasi dalam 20 menit ke tempat berketinggian minimal 20 meter.";
+                speechText = "Protokol 20 20 20: jika gempa terasa 20 detik, evakuasi dalam 20 menit ke ketinggian minimal 20 meter.";
             }
-            // 6. CUACA, MUSON & ENSO
-            else if (query.includes('cuaca') || query.includes('muson') || query.includes('enso') || query.includes('el nino') || query.includes('la nina')) {
+            else if (query.includes('cuaca') || query.includes('muson') || query.includes('enso')) {
                 botReply = `
                 <div class="chat-glow-monsoon p-3 bg-slate-950 rounded-xl space-y-2 font-mono text-xs chat-card-animated">
                     <b class="text-amber-400 text-xs font-tech block border-b border-amber-500/40 pb-1.5">
@@ -3027,17 +3271,12 @@
                     </b>
                     <div class="space-y-1 text-[11px] text-slate-300">
                         <div>● <b>Monsoon Prediction Index:</b> <span class="text-cyan-400 font-bold">84% (Muson Timur Mapan)</span></div>
-                        <div>● <b>Status ENSO Pasifik:</b> <span class="text-blue-400 font-bold">La Niña (-1.71) [Kondisi Basah]</span></div>
-                        <div>● <b>Gelombang Laut Maritim:</b> <span class="text-red-400 font-bold">1.05 - 2.71 Meter (Waspada)</span></div>
-                    </div>
-                    <div class="pt-1 flex gap-2">
-                        <button onclick="toggleMonsoonInterface()" class="flex-1 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded text-[10px] font-bold cursor-pointer">Buka Panel Muson</button>
-                        <a href="https://adikds.github.io/MONITORING-PREDIKSI-ANGIN-MUSON-INDONESIA/" target="_blank" rel="noopener noreferrer" class="flex-1 py-1 bg-cyan-700 hover:bg-cyan-600 text-white rounded text-[10px] font-bold text-center flex items-center justify-center gap-1 cursor-pointer"><span>Cuaca Analysis</span> <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i></a>
+                        <div>● <b>Status ENSO Pasifik:</b> <span class="text-blue-400 font-bold">La Niña (-1.71)</span></div>
+                        <div>● <b>Gelombang Laut Maritim:</b> <span class="text-red-400 font-bold">1.05 - 2.71 Meter</span></div>
                     </div>
                 </div>`;
                 speechText = "Analisis meteorologi: Indeks muson 84%, status ENSO La Nina, gelombang laut 1 hingga 2.7 meter.";
             }
-            // 7. GENERAL WIKIPEDIA / GOOGLE KNOWLEDGE SEARCH
             else {
                 const loadingId = "loader-" + Date.now();
                 box.innerHTML += `<div id="${loadingId}" class="bg-slate-900 p-2.5 rounded-xl border border-slate-800 text-slate-400 text-[10px] font-mono"><i class="fa-solid fa-circle-notch animate-spin text-cyan-400 mr-2"></i>Mencari di ensiklopedia Wikipedia &amp; Google...</div>`;
@@ -3051,7 +3290,6 @@
                     if (loaderEl) loaderEl.remove();
 
                     const googleLink = `https://www.google.com/search?q=${encodeURIComponent(val)}`;
-                    const geminiLink = `https://gemini.google.com/app?q=${encodeURIComponent(val)}`;
 
                     if(data.query && data.query.pages) {
                         const pages = data.query.pages;
@@ -3084,14 +3322,13 @@
                         <div class="chat-glow-seismo p-3 bg-slate-950 rounded-xl space-y-2 font-mono text-xs chat-card-animated">
                             <b class="text-cyan-400 text-xs block">ANALISIS: "${val}"</b>
                             <p class="text-slate-300 text-[10px]">
-                                Pertanyaan telah diproses. Anda dapat menelusuri literatur ilmiah lengkap melalui tautan di bawah:
+                                Pertanyaan telah diproses. Anda dapat menelusuri literatur ilmiah lengkap melalui Google Search:
                             </p>
-                            <div class="flex gap-1.5 pt-1">
-                                <a href="${googleLink}" target="_blank" class="flex-1 py-1.5 bg-slate-900 border border-cyan-500/50 rounded text-center text-cyan-300 font-bold text-[10px]"><i class="fa-brands fa-google mr-1"></i> Google Search</a>
-                                <a href="${geminiLink}" target="_blank" class="flex-1 py-1.5 bg-slate-900 border border-fuchsia-500/50 rounded text-center text-fuchsia-300 font-bold text-[10px]"><i class="fa-solid fa-brain mr-1"></i> Gemini AI</a>
+                            <div class="pt-1">
+                                <a href="${googleLink}" target="_blank" class="block w-full py-1.5 bg-slate-900 border border-cyan-500/50 rounded text-center text-cyan-300 font-bold text-[10px]"><i class="fa-brands fa-google mr-1"></i> Google Search</a>
                             </div>
                         </div>`;
-                        speechText = "Pertanyaan telah diproses. Referensi dapat diakses melalui tautan Google di layar.";
+                        speechText = "Pertanyaan telah diproses.";
                     }
                 } catch(e) {
                     const loaderEl = document.getElementById(loadingId);
@@ -3115,19 +3352,21 @@
             }, 250);
         }
 
-        // ================= MODAL CONTROLS =================
-        function openCreatorModal() { document.getElementById('creatorModal').classList.remove('hidden'); speakText("Membuka profil pengembang Mohamad Hartadi."); }
+        function openCreatorModal() {
+            document.getElementById('creatorModal').classList.remove('hidden');
+            if (!modalEarthInit) initModalRealisticEarth();
+            speakText("Membuka profil pengembang Mohamad Hartadi.");
+        }
         function closeCreatorModal() { document.getElementById('creatorModal').classList.add('hidden'); }
         function openHelpModal() { document.getElementById('helpModal').classList.remove('hidden'); speakText("Membuka panduan operasional sistem."); }
         function closeHelpModal() { document.getElementById('helpModal').classList.add('hidden'); }
 
-        // Keyboard Shortcuts
         window.addEventListener('keydown', (e) => {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
             if (e.key === 'Escape') {
                 closeCreatorModal();
                 closeHelpModal();
-                resetIdle();
+                turnOffScreensaverMode();
             } else if (e.key === 's' || e.key === 'S') {
                 turnOnScreensaverMode();
             } else if (e.key === 't' || e.key === 'T') {
@@ -3140,8 +3379,18 @@
                 else toggleMapWeatherFlip('weather');
             } else if (e.key === '?') {
                 openHelpModal();
+            } else if (e.key === 'l' || e.key === 'L') {
+                toggleAppLanguage();
+            } else if (e.key === '+' || e.key === '=') {
+                adjustTextSize(1);
+            } else if (e.key === '-' || e.key === '_') {
+                adjustTextSize(-1);
+            } else if (e.key === '0') {
+                resetTextSize();
             }
         });
     </script>
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toastContainer" class="fixed top-16 right-4 z-[9999] space-y-2 pointer-events-none no-print"></div>
 </body>
 </html>
